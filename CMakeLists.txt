@@ -21,7 +21,8 @@ SET(CMAKE_CXX_STANDARD 17)
 FILE(GLOB COMMON_SRC
 		"./dependencies/src/imgui/*.cpp"
 		"./dependencies/src/*.c"
-		"./mesh.cpp"
+		"./physical_mesh.cpp"
+		"./half_edge.cpp"
 		)
 
 ADD_EXECUTABLE(${PRJ_NAME} ${COMMON_SRC} main.cpp)
