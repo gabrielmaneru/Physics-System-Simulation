@@ -14,4 +14,7 @@ struct physical_mesh
 	void add_face(const std::vector<uint>& indices);
 	void create_twins();
 	void merge_coplanar();
+
+	glm::vec4 get_face_plane(const half_edge* hedge)const;
+	bool is_coplanar(const half_edge* hedge)const;
 };

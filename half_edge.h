@@ -9,6 +9,7 @@ struct half_edge
 	half_edge* m_next;
 	half_edge* m_twin;
 
+	uint get_other()const;
 	uint get_start()const;
 	uint get_end()const;
 };

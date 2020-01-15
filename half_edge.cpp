@@ -1,5 +1,10 @@
 #include "half_edge.h"
 
+uint half_edge::get_other() const
+{
+	return m_next->m_vertex_idx;
+}
+
 uint half_edge::get_start() const
 {
 	return m_prev->m_vertex_idx;
