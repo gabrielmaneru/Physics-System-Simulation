@@ -11,22 +11,27 @@ SET(CMAKE_RUNTIME_OUTPUT_DIRECTORY_MINSIZEREL "${OUTPUT_DIRECTORY}")
 
 ##################################
 # Project
-SET(PRJ_NAME cs550_lab_halfedge)
+SET(PRJ_NAME physics_system)
 PROJECT(${PRJ_NAME})
 PROJECT(${PRJ_NAME}_test)
 
 # C++17
 SET(CMAKE_CXX_STANDARD 17)
 
-FILE(GLOB COMMON_SRC
+FILE(GLOB DEMO_SRC
 		"./dependencies/src/imgui/*.cpp"
-		"./dependencies/src/*.c"
-		"./physical_mesh.cpp"
-		"./half_edge.cpp"
+		"./src/physics/*.cpp"
+		"./src/engine/*.cpp"
+		"./src/core/main.cpp"
+		)
+FILE(GLOB TEST_SRC
+		"./src/physics/*.cpp"
+		"./src/core/tests.cpp"
+		"./src/core/main_gtest.cpp"
 		)
 
-ADD_EXECUTABLE(${PRJ_NAME} ${COMMON_SRC} main.cpp)
-ADD_EXECUTABLE(${PRJ_NAME}_test ${COMMON_SRC} main_gtest.cpp test_half_edge.cpp)
+ADD_EXECUTABLE(${PRJ_NAME} ${DEMO_SRC})
+ADD_EXECUTABLE(${PRJ_NAME}_test ${TEST_SRC})
 
 ##################################
 # General options

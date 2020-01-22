@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include "physical_mesh.h"
+#include <physics/physical_mesh.h>
 
 TEST(half_edge, half_edge_triangle)
 {
