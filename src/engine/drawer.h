@@ -1,15 +1,15 @@
 #pragma once
+#include "camera.h"
 
-struct GLFWwindow;
+class Shader_Program;
 class c_drawer
 {
-	GLFWwindow* window{ nullptr };
+	camera m_camera;
+	Shader_Program* color_shader;
 
 public:
 	bool initialize();
-	bool should_exit();
-	void update_window();
-	void render_window();
+	void render();
 	void shutdown();
 	static c_drawer& get_instance();
 };
