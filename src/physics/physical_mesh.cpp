@@ -25,6 +25,13 @@ bool physical_mesh::is_coplanar(const half_edge * hedge) const
 	return abs(dist_to_plane) < FLT_EPSILON;
 }
 
+physical_mesh::physical_mesh(physical_mesh && o)
+	:m_vertices(std::move(o.m_vertices)),
+	m_hedges(std::move(o.m_hedges)),
+	m_faces(std::move(o.m_faces))
+{
+}
+
 void physical_mesh::add_face(const std::vector<uint>& indices)
 {
 	// Assert minimum face is a triangle
@@ -106,21 +113,59 @@ void physical_mesh::create_twins()
 void physical_mesh::merge_coplanar()
 {
 	// For each face
-	std::list<face>::const_iterator it = m_faces.cbegin();
-	for (; it != m_faces.end(); it++)
+	std::list<face>::iterator it = m_faces.begin();
+	for (; it != m_faces.end();)
 	{
-		// Get Start of linked list
-		half_edge * edge1 = it->m_hedge_start;
-
-		// Do one cycle through the list
-		do
+		// Check face still exists
+		if (it->m_hedge_start == nullptr)
+			it = m_faces.erase(it);
+		else
 		{
-			// If the edge has a twin
-			if (edge1->m_twin != nullptr && is_coplanar(edge1))
+			// Get Start of linked list
+			half_edge * edge1 = it->m_hedge_start;
+
+			// Do one cycle through the list
+			do
 			{
-				//merge them
-			}
-			edge1 = edge1->m_next;
-		} while (edge1 != it->m_hedge_start);
+				// If the edge has a twin
+				if (edge1->m_twin != nullptr && is_coplanar(edge1))
+				{
+					// Fix first edge
+					if (edge1 == it->m_hedge_start)
+						it->m_hedge_start = edge1->m_prev;
+
+					// Change Current bounds
+					half_edge* next = edge1->m_prev->m_next = edge1->m_twin->m_next;
+					edge1->m_next->m_prev = edge1->m_twin->m_prev;
+
+					// Change twin bounds
+					edge1->m_twin->m_prev->m_next = edge1->m_next;
+					edge1->m_twin->m_next->m_prev = edge1->m_prev;
+
+					// Remove other face
+					edge1->m_twin->m_face->m_hedge_start = nullptr;
+
+
+					it->refresh();
+					remove_edge(edge1->m_twin);
+					remove_edge(edge1);
+					edge1 = next;
+				}
+				else
+					edge1 = edge1->m_next;
+			} while (edge1 != it->m_hedge_start);
+			it++;
+		}
 	}
+}
+
+void physical_mesh::remove_edge(half_edge * hedge)
+{
+	std::list<half_edge>::iterator it = m_hedges.begin();
+	for (; it != m_hedges.end(); it++)
+		if (&*it == hedge)
+		{
+			m_hedges.erase(it);
+			return;
+		}
 }

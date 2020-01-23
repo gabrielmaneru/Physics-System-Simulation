@@ -112,7 +112,7 @@ TEST(half_edge, half_edge_merge_coplanar)
 		glm::vec3{0.0f, 0.0f, 0.0f},
 		glm::vec3{1.0f, 0.0f, 0.0f},
 		glm::vec3{1.0f, 1.0f, 0.0f},
-		glm::vec3{0.0f, 1.0f, 8.0f}
+		glm::vec3{0.0f, 1.0f, 0.0f}
 	};
 	mesh.add_face({ 0u,1u,2u });
 	mesh.add_face({ 2u,3u,0u });

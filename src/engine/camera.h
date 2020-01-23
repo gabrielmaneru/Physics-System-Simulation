@@ -28,6 +28,6 @@ struct camera
 	glm::mat4 m_proj;
 	glm::mat4 m_view;
 
-	float m_angular_speed{ -0.2f };
+	float m_angular_speed{ 0.2f };
 	float m_linear_speed{ 0.05f };
 };

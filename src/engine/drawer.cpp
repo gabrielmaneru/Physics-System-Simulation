@@ -12,31 +12,9 @@ bool c_drawer::initialize()
 
 	// Create shaders
 	try {
-		color_shader = new Shader_Program("color.vert", "color.frag");
+		m_debug_shader = new Shader_Program("debug.vert", "debug.frag");
 	}
 	catch (const std::string & log) { std::cout << log; }
-
-
-
-	float vertices[] = {
-		-0.5f, -0.5f, 0.0f, // left  
-		 0.5f, -0.5f, 0.0f, // right 
-		 0.0f,  0.5f, 0.0f  // top   
-	};
-	unsigned int VBO, VAO;
-	glGenVertexArrays(1, &VAO);
-	glGenBuffers(1, &VBO);
-	// bind the Vertex Array Object first, then bind and set vertex buffer(s), and then configure vertex attributes(s).
-	glBindVertexArray(VAO);
-
-	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-	glEnableVertexAttribArray(0);
-
-	// note that this is allowed, the call to glVertexAttribPointer registered VBO as the vertex attribute's bound vertex buffer object so afterwards we can safely unbind
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 	return true;
 }
@@ -46,16 +24,44 @@ void c_drawer::render()
 	m_camera.update();
 	glClearColor(0.1f, 0.1f, 0.1f, 1);
 	glClear(GL_COLOR_BUFFER_BIT);
-
 	glm::mat4 vp = m_camera.m_proj * m_camera.m_view;
-	color_shader->use();
-	color_shader->set_uniform("uniform_mvp", vp);
-	color_shader->set_uniform("uniform_color", glm::vec4{ 1,0,0,0 });
+
 	glDrawArrays(GL_TRIANGLES, 0, 3);
+
+	if (!m_debug_lines.empty())
+	{
+		if (m_debug_vao == 0)
+			glGenVertexArrays(1, &m_debug_vao);
+		glBindVertexArray(m_debug_vao);
+
+		if (m_debug_vbo == 0)
+			glGenBuffers(1, &m_debug_vbo);
+		glBindBuffer(GL_ARRAY_BUFFER, m_debug_vbo);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(debug_vertex)*m_debug_lines.size(), m_debug_lines.data(), GL_DYNAMIC_DRAW);
+
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6*sizeof(float), (void*)0);
+		glEnableVertexAttribArray(0);
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6*sizeof(float), (void*)(3*sizeof(float)));
+		glEnableVertexAttribArray(1);
+
+		m_debug_shader->use();
+		m_debug_shader->set_uniform("vp", vp);
+		glDrawArrays(GL_LINES, 0, m_debug_lines.size());
+
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		glBindVertexArray(0);
+		m_debug_lines.clear();
+	}
 }
 
 void c_drawer::shutdown()
 {
+}
+
+void c_drawer::add_debug_line(glm::vec3 p0, glm::vec3 p1, glm::vec3 color)
+{
+	m_debug_lines.push_back({ p0,color });
+	m_debug_lines.push_back({ p1,color });
 }
 
 c_drawer & c_drawer::get_instance()
