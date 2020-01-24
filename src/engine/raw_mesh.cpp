@@ -1,6 +1,44 @@
 #include "raw_mesh.h"
 #include <fstream>
 
+void parse_vec3(std::string line, glm::vec3& v)
+{
+	size_t s = 0;
+	while (line[s] == 'v' || line[s] == ' '){s++;}
+	line = line.substr(s);
+
+	s = line.find(' ');
+	v[0] = static_cast<float>(std::atof(line.substr(0, s).c_str()));
+	while (line[s] == ' ') { s++; }
+	line = line.substr(s);
+
+	s = line.find(' ');
+	v[1] = static_cast<float>(std::atof(line.substr(0, s).c_str()));
+	while (line[s] == ' ') { s++; }
+	line = line.substr(s);
+
+	v[2] = static_cast<float>(std::atof(line.c_str()));
+}
+void parse_indices(std::string line, std::vector<uint>& f)
+{
+	size_t s = 0;
+	while (line[s] == 'f' || line[s] == ' ') { s++; }
+	line = line.substr(s);
+
+	while (line.size() > 0)
+	{
+		size_t b = line.find('/');
+		size_t s = line.find(' ');
+		if (s > line.length()) s = line.length();
+		if (b > s) b = s;
+
+		int i = std::atoi(line.substr(0, b).c_str()) - 1;
+		f.push_back(static_cast<uint>(i));
+		while (line[s] == ' ') { s++; }
+		line = line.substr(s);
+	}
+}
+
 raw_mesh::raw_mesh(const std::string & path)
 {
 	std::ifstream file;
@@ -13,34 +51,13 @@ raw_mesh::raw_mesh(const std::string & path)
 			continue;
 		if (line.rfind("v ") == 0)
 		{
-			glm::vec3 v;
-			line = line.substr(2);
-			size_t s = line.find(' ');
-			v[0] = static_cast<float>(std::atof(line.substr(0, s).c_str()));
-			line = line.substr(s + 1);
-			s = line.find(' ');
-			v[1] = static_cast<float>(std::atof(line.substr(0, s).c_str()));
-			line = line.substr(s + 1);
-			s = line.find(' ');
-			v[2] = static_cast<float>(std::atof(line.substr(0, s).c_str()));
-			m_vertices.push_back(v);
+			m_vertices.push_back({});
+			parse_vec3(line, m_vertices.back());
 		}
 		else if (line.rfind("f ") == 0)
 		{
 			std::vector<uint> f;
-			line = line.substr(2);
-			while (line.size() > 0)
-			{
-				size_t b = line.find('/');
-				size_t s = line.find(' ');
-				if (s > line.length()) s = line.length() - 1;
-				if (b > s) b = s+1;
-
-				int i = std::atoi(line.substr(0, b).c_str()) - 1;
-				f.push_back(static_cast<uint>(i));
-				line = line.substr(s + 1);
-
-			}
+			parse_indices(line, f);
 			m_faces.push_back(f);
 		}
 	}

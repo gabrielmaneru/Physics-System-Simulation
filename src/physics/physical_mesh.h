@@ -7,6 +7,12 @@
 #include <list>
 #include <glm/glm.hpp>
 
+struct ray_info
+{
+	bool m_intersected{ false };
+	float m_time{FLT_MAX};
+	glm::vec3 m_normal;
+};
 struct physical_mesh
 {
 	physical_mesh() = default;
@@ -21,5 +27,5 @@ struct physical_mesh
 	void remove_edge(half_edge*);
 	glm::vec4 get_face_plane(const half_edge* hedge)const;
 	bool is_coplanar(const half_edge* hedge)const;
-	float ray_cast(const ray& local_ray)const;
+	ray_info ray_cast(const ray& local_ray)const;
 };

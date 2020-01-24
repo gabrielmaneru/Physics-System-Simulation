@@ -12,22 +12,30 @@ inline glm::vec3 tr_vector(glm::mat4 m, glm::vec3 v)
 	return glm::vec3(m*glm::vec4(v, 0));
 }
 
-float c_physics::ray_cast(const ray & world_ray)const
+ray_info_detailed c_physics::ray_cast(const ray & world_ray)const
 {
-	float min_time{ FLT_MAX };
+	ray_info_detailed info;
 	for (uint i = 0; i < m_bodies.size(); i++)
 	{
-		glm::mat4 inv = glm::inverse(m_bodies[i].get_model());
+		glm::mat4 model = m_bodies[i].get_model();
+		glm::mat4 inv = glm::inverse(model);
 		ray local_ray = { tr_point(inv,world_ray.m_start),
 			tr_vector(inv,world_ray.m_direction) };
-		float local_time = m_meshes[i].ray_cast(local_ray);
-		if (local_time >= 0 && local_time < min_time)
-			min_time = local_time;
+		ray_info local_info = m_meshes[i].ray_cast(local_ray);
+		if (local_info.m_intersected && local_info.m_time < info.m_time)
+		{
+			info.m_intersected = true;
+			info.m_time = local_info.m_time;
+			info.m_normal = glm::transpose(glm::inverse(glm::mat3(model)))*local_info.m_normal;
+
+			info.m_pi = world_ray.get_point(info.m_time);
+			info.m_body = i;
+		}
 	}
-	return (min_time == FLT_MAX) ? -1.0f : min_time;
+	return info;
 }
 
-void c_physics::add_debug_lines() const
+void c_physics::draw_debug_bodies() const
 {
 	for (uint i = 0; i < m_bodies.size(); i++)
 	{
@@ -40,7 +48,7 @@ void c_physics::add_debug_lines() const
 			{
 				glm::vec3 p0 = tr_point(m, mesh.m_vertices[hedge->get_start()]);
 				glm::vec3 p1 = tr_point(m, mesh.m_vertices[hedge->get_end()]);
-				drawer.add_debug_line(p0, p1, glm::vec3(1, 0, 0));
+				drawer.add_debug_line(p0, p1, red);
 				hedge = hedge->m_next;
 			} while (hedge != f.m_hedge_start);
 		}
@@ -50,28 +58,43 @@ void c_physics::add_debug_lines() const
 bool c_physics::initialize()
 {
 	body b{};
-	b.m_position = glm::vec3(-1.0f, 0.0f, 0.0f);
+	b.m_position = glm::vec3(0.0f, 0.0f, 0.0f);
+	add_body(b, "bunny.obj");
+	b.m_position = glm::vec3(2.0f, 0.0f, 0.0f);
 	add_body(b, "cube.obj");
-	b.m_position = glm::vec3(1.0f, 0.0f, 0.0f);
-	add_body(b, "cube.obj");
+	b.m_position = glm::vec3(4.0f, 0.0f, 0.0f);
+	add_body(b, "cylinder.obj");
+	b.m_position = glm::vec3(0.0f, 0.0f, 2.0f);
+	add_body(b, "gourd.obj");
+	b.m_position = glm::vec3(2.0f, 0.0f, 2.0f);
+	add_body(b, "icosahedron.obj");
+	b.m_position = glm::vec3(4.0f, 0.0f, 2.0f);
+	add_body(b, "octohedron.obj");
+	b.m_position = glm::vec3(0.0f, 0.0f, 4.0f);
+	add_body(b, "quad.obj");
+	b.m_position = glm::vec3(2.0f, 0.0f, 4.0f);
+	add_body(b, "sphere.obj");
+	b.m_position = glm::vec3(4.0f, 0.0f, 4.0f);
+	add_body(b, "triangle.obj");
 	return true;
 }
 
 void c_physics::update()
 {
-	add_debug_lines();
-	glm::vec4 mouse_ndc{ glm::vec3{window.get_mouse_ndc(),1.0f},1.0f };
+	draw_debug_bodies();
+	glm::vec4 mouse_ndc{ glm::vec3{window.get_mouse_ndc(),0.0f},1.0f };
 	glm::vec4 mouse_world = glm::inverse(drawer.m_camera.get_vp())*mouse_ndc;
 	glm::vec3 mouse_pos{ glm::vec3(mouse_world) / mouse_world.w };
 
 	glm::vec3 cam_eye = drawer.m_camera.m_eye;
 	ray cam_mouse = { cam_eye, mouse_pos - cam_eye };
-	float time = ray_cast(cam_mouse);
-	if(time < 0.0f)
-		drawer.add_debug_cube(mouse_pos, 5.f, glm::vec3{0.0f, 0.0f, 1.0f});
-	else
-		drawer.add_debug_cube(mouse_pos, 5.f, glm::vec3{ 0.0f, 1.0f, 0.0f });
 
+	ray_info_detailed info = ray_cast(cam_mouse);
+	if (info.m_intersected)
+	{
+		drawer.add_debug_line(info.m_pi, info.m_pi + 0.1f*info.m_normal, blue);
+		drawer.add_debug_cube(mouse_pos, 0.0001f, green);
+	}
 }
 
 void c_physics::shutdown()

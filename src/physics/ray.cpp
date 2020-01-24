@@ -7,11 +7,11 @@ glm::vec3 ray::get_point(float t) const
 
 float ray::ray_cast_plane(glm::vec4 plane) const
 {
-	if (glm::length2(m_direction) > FLT_EPSILON)
+	if (glm::length2(m_direction) > c_epsilon)
 	{
 		glm::vec3 normal{ plane };
 		float dot_ray_normal = glm::dot(m_direction, normal);
-		if (std::abs(dot_ray_normal) > FLT_EPSILON)
+		if (std::abs(dot_ray_normal) > c_epsilon)
 		{
 			glm::vec3 plane_point = normal * plane.w;
 			glm::vec3 delta_pos = plane_point - m_start;

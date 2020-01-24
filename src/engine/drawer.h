@@ -23,9 +23,14 @@ public:
 	void render();
 	void shutdown();
 	void add_debug_line(glm::vec3 p0, glm::vec3 p1, glm::vec3 color);
+	void add_debug_parallelepiped(glm::vec3 p0, glm::vec3 v0, glm::vec3 v1, glm::vec3 v2, glm::vec3 color);
 	void add_debug_cube(glm::vec3 p, float size, glm::vec3 color);
 	static c_drawer& get_instance();
 
 	camera m_camera{};
 };
 #define drawer c_drawer::get_instance()
+const glm::vec3 red  { 1.f, 0.f, 0.f };
+const glm::vec3 green{ 0.f, 1.f, 0.f };
+const glm::vec3 blue { 0.f, 0.f, 1.f };
+const glm::vec3 white{ 1.f, 1.f, 1.f };

@@ -5,10 +5,16 @@
 #include <physics/ray.h>
 #include <map>
 
+struct ray_info_detailed : public ray_info
+{
+	glm::vec3 m_pi;
+	uint m_body;
+};
+
 class c_physics
 {
-	float ray_cast(const ray&)const;
-	void add_debug_lines()const;
+	ray_info_detailed ray_cast(const ray&)const;
+	void draw_debug_bodies()const;
 
 	std::vector<physical_mesh> m_meshes;
 	std::vector<body> m_bodies;

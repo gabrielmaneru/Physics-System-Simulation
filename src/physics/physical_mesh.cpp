@@ -1,4 +1,5 @@
 #include "physical_mesh.h"
+#include <engine/drawer.h>
 
 glm::vec4 physical_mesh::get_face_plane(const half_edge * hedge) const
 {
@@ -25,14 +26,14 @@ bool physical_mesh::is_coplanar(const half_edge * hedge) const
 	return abs(dist_to_plane) < FLT_EPSILON;
 }
 
-float physical_mesh::ray_cast(const ray & local_ray)const
+ray_info physical_mesh::ray_cast(const ray & local_ray)const
 {
-	float min_time = FLT_MAX;
+	ray_info info;
 	for (auto f : m_faces)
 	{
 		glm::vec4 face_plane = get_face_plane(f.m_hedge_start);
 		float time = local_ray.ray_cast_plane(face_plane);
-		if (time >= 0.0f && time < min_time)
+		if (time >= 0.0f && time < info.m_time)
 		{
 			glm::vec3 proj_point{ local_ray.get_point(time) };
 			glm::vec3 p0 = m_vertices[f.m_indices[0]];
@@ -40,27 +41,36 @@ float physical_mesh::ray_cast(const ray & local_ray)const
 			{
 				glm::vec3 p1 = m_vertices[f.m_indices[tri]];
 				glm::vec3 p2 = m_vertices[f.m_indices[tri+1]];
+
 				glm::vec3 v1 = p1 - p0;
 				glm::vec3 v2 = p2 - p0;
 
-				float d_v1_v1 = glm::dot(v1, v1);
+				float d_v1 = glm::dot(v1, v1);
+				float d_v2 = glm::dot(v2, v2);
 				float d_v1_v2 = glm::dot(v1, v2);
-				float d_v1_p = glm::dot(v1, proj_point);
 
-				float d = d_v1_v1 - d_v1_v2;
-				if (glm::abs(d) > FLT_EPSILON)
+				float d = d_v1*d_v2 - d_v1_v2*d_v1_v2;
+				if (glm::abs(d) > c_epsilon)
 				{
-					float x = (d_v1_p - d_v1_v2) / d;
-					if (0.0f <= x && x <= 1.0f)
+					glm::vec3 p = proj_point - p0;
+					float d_p_v1 = glm::dot(v1, p);
+					float d_p_v2 = glm::dot(v2, p);
+
+					float s = (d_v2*d_p_v1 - d_v1_v2 * d_p_v2) / d;
+					float t = (d_v1*d_p_v2 - d_v1_v2 * d_p_v1) / d;
+
+					if (s+t < 1.0f && 0.0f <= s && 0.0f <= t)
 					{
-						min_time = time;
+						info.m_intersected = true;
+						info.m_time = time;
+						info.m_normal = glm::vec3(get_face_plane(f.m_hedge_start));
 						break;
 					}
 				}
 			}
 		}
 	}
-	return (min_time == FLT_MAX) ? -1.0f : min_time;
+	return info;
 }
 
 physical_mesh::physical_mesh(physical_mesh && o)
@@ -149,13 +159,10 @@ void physical_mesh::create_twins()
 void physical_mesh::merge_coplanar()
 {
 	// For each face
-	std::list<face>::iterator it = m_faces.begin();
-	for (; it != m_faces.end();)
+	for (auto it = m_faces.begin(); it != m_faces.end(); it++)
 	{
-		// Check face still exists
-		if (it->m_hedge_start == nullptr)
-			it = m_faces.erase(it);
-		else
+		// Check face exists
+		if (it->m_hedge_start != nullptr)
 		{
 			// Get Start of linked list
 			half_edge * edge1 = it->m_hedge_start;
@@ -166,33 +173,71 @@ void physical_mesh::merge_coplanar()
 				// If the edge has a twin
 				if (edge1->m_twin != nullptr && is_coplanar(edge1))
 				{
-					// Fix first edge
-					if (edge1 == it->m_hedge_start)
-						it->m_hedge_start = edge1->m_prev;
+					// Create a face
+					m_faces.push_back({});
+					face& f = m_faces.back();
 
-					// Change Current bounds
-					half_edge* next = edge1->m_prev->m_next = edge1->m_twin->m_next;
-					edge1->m_next->m_prev = edge1->m_twin->m_prev;
+					// If twin is prev to edge1
+					if (edge1->m_prev == edge1->m_twin)
+					{
+						edge1->m_next->m_prev = edge1->m_twin->m_prev;
+						edge1->m_twin->m_prev->m_next = edge1->m_next;
 
-					// Change twin bounds
-					edge1->m_twin->m_prev->m_next = edge1->m_next;
-					edge1->m_twin->m_next->m_prev = edge1->m_prev;
+						f.m_hedge_start = edge1->m_next;
+						f.refresh();
+					}
 
-					// Remove other face
-					edge1->m_twin->m_face->m_hedge_start = nullptr;
+					// If twin is next to edge1
+					else if (edge1->m_next == edge1->m_twin)
+					{
+						edge1->m_prev->m_next = edge1->m_twin->m_next;
+						edge1->m_twin->m_next->m_prev = edge1->m_prev;
 
+						f.m_hedge_start = edge1->m_prev;
+						f.refresh();
+					}
 
-					it->refresh();
+					// Merge faces
+					else
+					{
+						// Change Current bounds
+						edge1->m_prev->m_next = edge1->m_twin->m_next;
+						edge1->m_next->m_prev = edge1->m_twin->m_prev;
+
+						// Change twin bounds
+						edge1->m_twin->m_prev->m_next = edge1->m_next;
+						edge1->m_twin->m_next->m_prev = edge1->m_prev;
+
+						// Reconnect the new face
+						f.m_hedge_start = edge1->m_prev;
+						f.refresh();
+
+						// Remove other face
+						edge1->m_twin->m_face->m_hedge_start = nullptr;
+					}
+
+					// Remove current face
+					it->m_hedge_start = nullptr;
+
+					// Remove both hedges
 					remove_edge(edge1->m_twin);
 					remove_edge(edge1);
-					edge1 = next;
+					break;
 				}
 				else
 					edge1 = edge1->m_next;
 			} while (edge1 != it->m_hedge_start);
-			it++;
 		}
 	}
+	// Delete null faces
+	for (auto it = m_faces.begin(); it != m_faces.end();)
+	{
+		if (it->m_hedge_start == nullptr)
+			it = m_faces.erase(it);
+		else
+			it++;
+	}
+
 }
 
 void physical_mesh::remove_edge(half_edge * hedge)
