@@ -24,7 +24,7 @@ void c_drawer::render()
 	m_camera.update();
 	glClearColor(0.1f, 0.1f, 0.1f, 1);
 	glClear(GL_COLOR_BUFFER_BIT);
-	glm::mat4 vp = m_camera.m_proj * m_camera.m_view;
+	glm::mat4 vp = m_camera.get_vp();
 
 	glDrawArrays(GL_TRIANGLES, 0, 3);
 
@@ -62,6 +62,28 @@ void c_drawer::add_debug_line(glm::vec3 p0, glm::vec3 p1, glm::vec3 color)
 {
 	m_debug_lines.push_back({ p0,color });
 	m_debug_lines.push_back({ p1,color });
+}
+
+void c_drawer::add_debug_cube(glm::vec3 p, float size, glm::vec3 color)
+{
+	float hs = size * 0.5f;
+	glm::vec3 p_min = p - glm::vec3(hs);
+	glm::vec3 p_max = p + glm::vec3(hs);
+
+	add_debug_line(p_min, p + glm::vec3{ hs,-hs,-hs }, color);
+	add_debug_line(p_min, p + glm::vec3{ -hs,hs,-hs }, color);
+	add_debug_line(p_min, p + glm::vec3{ -hs,-hs,hs }, color);
+
+	add_debug_line(p + glm::vec3{ hs,-hs,-hs }, p + glm::vec3{ hs,-hs,hs }, color);
+	add_debug_line(p + glm::vec3{ -hs,-hs,hs }, p + glm::vec3{ hs,-hs,hs }, color);
+	add_debug_line(p + glm::vec3{ -hs,-hs,hs }, p + glm::vec3{ -hs,hs,hs }, color);
+	add_debug_line(p + glm::vec3{ -hs,hs,-hs }, p + glm::vec3{ -hs,hs,hs }, color);
+	add_debug_line(p + glm::vec3{ -hs,hs,-hs }, p + glm::vec3{ hs,hs,-hs }, color);
+	add_debug_line(p + glm::vec3{ hs,-hs,-hs }, p + glm::vec3{ hs,hs,-hs }, color);
+
+	add_debug_line(p + glm::vec3{ -hs,hs,hs }, p_max, color);
+	add_debug_line(p + glm::vec3{ hs,-hs,hs }, p_max, color);
+	add_debug_line(p + glm::vec3{ hs,hs,-hs }, p_max, color);
 }
 
 c_drawer & c_drawer::get_instance()

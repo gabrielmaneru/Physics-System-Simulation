@@ -27,6 +27,7 @@ struct camera
 
 	glm::mat4 m_proj;
 	glm::mat4 m_view;
+	glm::mat4 get_vp()const { return m_proj * m_view; }
 
 	float m_angular_speed{ 0.2f };
 	float m_linear_speed{ 0.05f };

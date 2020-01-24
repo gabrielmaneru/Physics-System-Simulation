@@ -2,9 +2,9 @@
 
 glm::vec4 physical_mesh::get_face_plane(const half_edge * hedge) const
 {
-	glm::vec3 p0 = m_vertices[hedge->get_start()].m_position;
-	glm::vec3 p1 = m_vertices[hedge->get_end()].m_position;
-	glm::vec3 p2 = m_vertices[hedge->get_other()].m_position;
+	glm::vec3 p0 = m_vertices[hedge->get_start()];
+	glm::vec3 p1 = m_vertices[hedge->get_end()];
+	glm::vec3 p2 = m_vertices[hedge->get_other()];
 
 	glm::vec3 v0 = glm::normalize(p1 - p0);
 	glm::vec3 v1 = glm::normalize(p2 - p1);
@@ -19,18 +19,54 @@ bool physical_mesh::is_coplanar(const half_edge * hedge) const
 		return false;
 
 	glm::vec4 plane1 = get_face_plane(hedge);
-	glm::vec3 p_in_edge2 = m_vertices[hedge->m_twin->get_other()].m_position;
+	glm::vec3 p_in_edge2 = m_vertices[hedge->m_twin->get_other()];
 	float dot = glm::dot(glm::vec3(plane1), p_in_edge2);
 	float dist_to_plane = dot - plane1.w;
 	return abs(dist_to_plane) < FLT_EPSILON;
 }
 
+float physical_mesh::ray_cast(const ray & local_ray)const
+{
+	float min_time = FLT_MAX;
+	for (auto f : m_faces)
+	{
+		glm::vec4 face_plane = get_face_plane(f.m_hedge_start);
+		float time = local_ray.ray_cast_plane(face_plane);
+		if (time >= 0.0f && time < min_time)
+		{
+			glm::vec3 proj_point{ local_ray.get_point(time) };
+			glm::vec3 p0 = m_vertices[f.m_indices[0]];
+			for (uint tri = 1; tri < f.m_indices.size() - 1; tri++)
+			{
+				glm::vec3 p1 = m_vertices[f.m_indices[tri]];
+				glm::vec3 p2 = m_vertices[f.m_indices[tri+1]];
+				glm::vec3 v1 = p1 - p0;
+				glm::vec3 v2 = p2 - p0;
+
+				float d_v1_v1 = glm::dot(v1, v1);
+				float d_v1_v2 = glm::dot(v1, v2);
+				float d_v1_p = glm::dot(v1, proj_point);
+
+				float d = d_v1_v1 - d_v1_v2;
+				if (glm::abs(d) > FLT_EPSILON)
+				{
+					float x = (d_v1_p - d_v1_v2) / d;
+					if (0.0f <= x && x <= 1.0f)
+					{
+						min_time = time;
+						break;
+					}
+				}
+			}
+		}
+	}
+	return (min_time == FLT_MAX) ? -1.0f : min_time;
+}
+
 physical_mesh::physical_mesh(physical_mesh && o)
 	:m_vertices(std::move(o.m_vertices)),
 	m_hedges(std::move(o.m_hedges)),
-	m_faces(std::move(o.m_faces))
-{
-}
+	m_faces(std::move(o.m_faces)) {}
 
 void physical_mesh::add_face(const std::vector<uint>& indices)
 {

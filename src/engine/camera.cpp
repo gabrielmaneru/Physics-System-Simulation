@@ -32,8 +32,8 @@ void camera::update()
 			m_eye -= m_up * speed;
 
 		// Apply Offset
-		m_yaw += input.m_mouse_offset[0] * m_angular_speed;
-		m_pitch += input.m_mouse_offset[1] * m_angular_speed;
+		m_yaw += static_cast<float>(input.m_mouse_offset[0]) * m_angular_speed;
+		m_pitch += static_cast<float>(input.m_mouse_offset[1]) * m_angular_speed;
 
 		// Check Bounds
 		if (m_pitch > 89.0f)

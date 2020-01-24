@@ -136,3 +136,4 @@
 #include "integer.hpp"
 #include "gtc/matrix_transform.hpp"
 #include "gtc/quaternion.hpp"
+#include "gtx/norm.hpp"

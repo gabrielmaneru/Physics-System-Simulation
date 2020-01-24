@@ -43,6 +43,13 @@ void c_window::shutdown()
 	glfwTerminate();
 }
 
+glm::vec2 c_window::get_mouse_ndc()
+{
+	double xfactor = input.m_mouse_pos[0] / static_cast<double>(m_width);
+	double yfactor = 1.0 - (input.m_mouse_pos[1] / static_cast<double>(m_height));
+	return glm::vec2(static_cast<float>(xfactor),static_cast<float>(yfactor))*2.0f-1.0f;
+}
+
 c_window & c_window::get_instance()
 {
 	static c_window instance;

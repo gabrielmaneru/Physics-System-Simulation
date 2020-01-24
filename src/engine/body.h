@@ -3,7 +3,7 @@
 
 struct body
 {
-	glm::mat4 get_model();
+	glm::mat4 get_model()const;
 
 	glm::vec3 m_position;
 	glm::vec3 m_l_velocity;

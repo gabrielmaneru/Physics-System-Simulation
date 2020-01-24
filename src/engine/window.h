@@ -1,6 +1,7 @@
 #pragma once
 #include <GLFW/glfw3.h>
 #include <unordered_set>
+#include <glm/glm.hpp>
 
 struct GLFWwindow;
 class c_window
@@ -13,6 +14,7 @@ public:
 	void update();
 	void present();
 	void shutdown();
+	glm::vec2 get_mouse_ndc();
 	static c_window& get_instance();
 
 	int m_width{1920};
