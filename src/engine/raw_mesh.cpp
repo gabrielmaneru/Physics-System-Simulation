@@ -34,7 +34,7 @@ raw_mesh::raw_mesh(const std::string & path)
 				size_t b = line.find('/');
 				size_t s = line.find(' ');
 				if (s > line.length()) s = line.length() - 1;
-				if (b > s) b = s;
+				if (b > s) b = s+1;
 
 				int i = std::atoi(line.substr(0, b).c_str()) - 1;
 				f.push_back(static_cast<uint>(i));

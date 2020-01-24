@@ -15,8 +15,8 @@ struct camera
 	void update();
 
 	float m_fov{ 65.0f };
-	float m_near{ .1f };
-	float m_far{ 500.0f };
+	float m_near{ .001f };
+	float m_far{ 100.0f };
 	float m_yaw{ -90.0f };
 	float m_pitch{ 0.0f };
 

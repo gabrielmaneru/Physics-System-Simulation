@@ -5,9 +5,9 @@ bool c_physics::initialize()
 {
 	body b{};
 	b.m_position = glm::vec3(-1.0f, 0.0f, 0.0f);
-	add_body(b, "cube.obj");
-	b.m_position = glm::vec3(1.0f, 0.0f, 0.0f);
-	add_body(b, "cube.obj");
+	add_body(b, "bunny.obj");
+	//b.m_position = glm::vec3(1.0f, 0.0f, 0.0f);
+	//add_body(b, "cube.obj");
 	return true;
 }
 
