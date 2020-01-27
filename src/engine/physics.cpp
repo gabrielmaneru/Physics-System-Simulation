@@ -1,16 +1,8 @@
 #include "physics.h"
 #include "drawer.h"
 #include "window.h"
+#include "input.h"
 #include <iostream>
-
-inline glm::vec3 tr_point(glm::mat4 m, glm::vec3 v)
-{
-	return glm::vec3(m*glm::vec4(v, 1));
-}
-inline glm::vec3 tr_vector(glm::mat4 m, glm::vec3 v)
-{
-	return glm::vec3(m*glm::vec4(v, 0));
-}
 
 ray_info_detailed c_physics::ray_cast(const ray & world_ray)const
 {
@@ -52,48 +44,72 @@ void c_physics::draw_debug_bodies() const
 				hedge = hedge->m_next;
 			} while (hedge != f.m_hedge_start);
 		}
+		drawer.add_debug_line(m_bodies[i].m_position, m_bodies[i].m_position + m_bodies[i].m_linear_momentum, green);
+		drawer.add_debug_line(m_bodies[i].m_position, m_bodies[i].m_position + m_bodies[i].m_angular_momentum, blue);
 	}
+}
+
+ray c_physics::get_mouse_ray() const
+{
+	glm::vec4 mouse_ndc{ glm::vec3{window.get_mouse_ndc(),0.0f},1.0f };
+	glm::vec4 mouse_world = glm::inverse(drawer.m_camera.get_vp())*mouse_ndc;
+	glm::vec3 mouse_pos{ glm::vec3(mouse_world) / mouse_world.w };
+
+	return{ mouse_pos, mouse_pos - drawer.m_camera.m_eye };
 }
 
 bool c_physics::initialize()
 {
+	glm::mat3 cube_inertia{ 1.f*.5f*.5f / 6.0f };
+	glm::mat3 sphere_inertia{ (2.f / 5.f)*1.f*(1.f*1.f) };
+
 	body b{};
-	b.m_position = glm::vec3(0.0f, 0.0f, 0.0f);
-	add_body(b, "bunny.obj");
 	b.m_position = glm::vec3(2.0f, 0.0f, 0.0f);
-	add_body(b, "cube.obj");
+	add_body(b, "cube.obj").set_inertia(cube_inertia);
+
+	b.m_position = glm::vec3(2.0f, 0.0f, 4.0f);
+	add_body(b, "sphere.obj").set_inertia(sphere_inertia);
+
 	b.m_position = glm::vec3(4.0f, 0.0f, 0.0f);
 	add_body(b, "cylinder.obj");
+
 	b.m_position = glm::vec3(0.0f, 0.0f, 2.0f);
 	add_body(b, "gourd.obj");
+
 	b.m_position = glm::vec3(2.0f, 0.0f, 2.0f);
 	add_body(b, "icosahedron.obj");
+
 	b.m_position = glm::vec3(4.0f, 0.0f, 2.0f);
 	add_body(b, "octohedron.obj");
+
 	b.m_position = glm::vec3(0.0f, 0.0f, 4.0f);
 	add_body(b, "quad.obj");
-	b.m_position = glm::vec3(2.0f, 0.0f, 4.0f);
-	add_body(b, "sphere.obj");
+
 	b.m_position = glm::vec3(4.0f, 0.0f, 4.0f);
 	add_body(b, "triangle.obj");
+
+	b.m_position = glm::vec3(0.0f, 0.0f, 0.0f);
+	add_body(b, "bunny.obj");
 	return true;
 }
 
 void c_physics::update()
 {
+	for (auto& b : m_bodies)
+		b.integrate(1.0f/60.0f);
 	draw_debug_bodies();
-	glm::vec4 mouse_ndc{ glm::vec3{window.get_mouse_ndc(),0.0f},1.0f };
-	glm::vec4 mouse_world = glm::inverse(drawer.m_camera.get_vp())*mouse_ndc;
-	glm::vec3 mouse_pos{ glm::vec3(mouse_world) / mouse_world.w };
 
-	glm::vec3 cam_eye = drawer.m_camera.m_eye;
-	ray cam_mouse = { cam_eye, mouse_pos - cam_eye };
-
-	ray_info_detailed info = ray_cast(cam_mouse);
+	ray mouse_ray = get_mouse_ray();
+	ray_info_detailed info = ray_cast(mouse_ray);
 	if (info.m_intersected)
 	{
 		drawer.add_debug_line(info.m_pi, info.m_pi + 0.1f*info.m_normal, blue);
-		drawer.add_debug_cube(mouse_pos, 0.0001f, green);
+		drawer.add_debug_cube(mouse_ray.m_start, 0.0001f, green);
+		if (input.m_mouse_triggered[0])
+		{
+			body& b = m_bodies[info.m_body];
+			b.add_force(glm::normalize(mouse_ray.m_direction), info.m_pi);
+		}
 	}
 }
 
@@ -101,7 +117,7 @@ void c_physics::shutdown()
 {
 }
 
-void c_physics::add_body(const body & b, std::string file)
+body& c_physics::add_body(const body & b, std::string file)
 {
 	auto it = m_loaded_meshes.find(file);
 	if (it == m_loaded_meshes.end())
@@ -122,6 +138,7 @@ void c_physics::add_body(const body & b, std::string file)
 
 	m_bodies.push_back(b);
 	m_meshes.emplace_back(std::move(m));
+	return m_bodies.back();
 }
 
 c_physics & c_physics::get_instance()

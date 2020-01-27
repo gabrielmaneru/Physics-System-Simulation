@@ -15,6 +15,7 @@ class c_physics
 {
 	ray_info_detailed ray_cast(const ray&)const;
 	void draw_debug_bodies()const;
+	ray get_mouse_ray()const;
 
 	std::vector<physical_mesh> m_meshes;
 	std::vector<body> m_bodies;
@@ -24,7 +25,7 @@ public:
 	bool initialize();
 	void update();
 	void shutdown();
-	void add_body(const body& b, std::string file);
+	body& add_body(const body & b, std::string file);
 	static c_physics& get_instance();
 };
 #define physics c_physics::get_instance()
