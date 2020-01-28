@@ -1,3 +1,10 @@
+/**
+ * @file body.cpp
+ * @author Gabriel Maneru, gabriel.m, gabriel.m@digipen.edu
+ * @date 01/28/2020
+ * @brief Camera structure
+ * @copyright Copyright (C) 2020 DigiPen Institute of Technology.
+**/
 #include "body.h"
 
 void body::integrate(float dt)
@@ -7,8 +14,11 @@ void body::integrate(float dt)
 	m_forces_accumulation = glm::vec3{ 0.0f };
 
 	// Apply velocity
-	glm::vec3 v = m_linear_momentum / m_mass;
-	m_position += v * dt;
+	if (m_mass != 0.0f)
+	{
+		glm::vec3 v = m_linear_momentum / m_mass;
+		m_position += v * dt;
+	}
 
 	// Add Torques to Angular Momentum
 	m_angular_momentum += m_torques_accumulation;
@@ -22,6 +32,11 @@ void body::integrate(float dt)
 	glm::vec3 w = w_inv_inertia * m_angular_momentum;
 	glm::quat w_quat{ 0.0f, w.x, w.y, w.z };
 	m_rotation = glm::normalize(m_rotation + w_quat * m_rotation * dt);
+}
+body & body::set_position(glm::vec3 pos)
+{
+	m_position = pos;
+	return *this;
 }
 body & body::set_inertia(glm::mat3 i)
 {

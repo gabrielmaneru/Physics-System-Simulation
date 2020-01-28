@@ -1,7 +1,15 @@
+/**
+ * @file shader_program.h
+ * @author Gabriel Maneru, gabriel.m, gabriel.m@digipen.edu
+ * @date 01/28/2020
+ * @brief Shader Program structure
+ * @copyright Copyright (C) 2020 DigiPen Institute of Technology.
+**/
 #pragma once
 #include <glm/glm.hpp>
 #include <string>
 #include <map>
+
 class Shader_Program
 {
 public:

@@ -1,7 +1,17 @@
+/**
+ * @file window.cpp
+ * @author Gabriel Maneru, gabriel.m, gabriel.m@digipen.edu
+ * @date 01/28/2020
+ * @brief Window manager
+ * @copyright Copyright (C) 2020 DigiPen Institute of Technology.
+**/
 #include "window.h"
 #include "input.h"
 #include <GLFW/glfw3.h>
 
+/**
+ * Initialize the manager
+**/
 bool c_window::initialize()
 {
 	// Initialize GLFW
@@ -20,11 +30,17 @@ bool c_window::initialize()
 	return true;
 }
 
+/**
+ * Check is the window has been closed
+**/
 bool c_window::should_exit()
 {
 	return glfwWindowShouldClose(m_window);
 }
 
+/**
+ * Update the manager
+**/
 void c_window::update()
 {
 	input.clear_triggers();
@@ -32,17 +48,26 @@ void c_window::update()
 	glfwGetFramebufferSize(m_window, &m_width, &m_height);
 }
 
+/**
+ * Swap buffers
+**/
 void c_window::present()
 {
 	glfwSwapBuffers(m_window);
 }
 
+/**
+ * Shutdown the manager
+**/
 void c_window::shutdown()
 {
 	glfwDestroyWindow(m_window);
 	glfwTerminate();
 }
 
+/**
+ * Get Mouse position in NDC coordinates
+**/
 glm::vec2 c_window::get_mouse_ndc()
 {
 	double xfactor = input.m_mouse_pos[0] / static_cast<double>(m_width);
@@ -50,6 +75,17 @@ glm::vec2 c_window::get_mouse_ndc()
 	return glm::vec2(static_cast<float>(xfactor),static_cast<float>(yfactor))*2.0f-1.0f;
 }
 
+/**
+ * Get the window handler (ImGui handle)
+**/
+GLFWwindow * c_window::get_handler()
+{
+	return m_window;
+}
+
+/**
+ * Singletone instanciator
+**/
 c_window & c_window::get_instance()
 {
 	static c_window instance;

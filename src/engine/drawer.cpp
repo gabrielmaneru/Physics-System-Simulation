@@ -1,3 +1,10 @@
+/**
+ * @file drawer.cpp
+ * @author Gabriel Maneru, gabriel.m, gabriel.m@digipen.edu
+ * @date 01/28/2020
+ * @brief Renderer manager
+ * @copyright Copyright (C) 2020 DigiPen Institute of Technology.
+**/
 #include "drawer.h"
 #include "shader_program.h"
 #include <glad/glad.h>
@@ -46,7 +53,7 @@ void c_drawer::render()
 
 		m_debug_shader->use();
 		m_debug_shader->set_uniform("vp", vp);
-		glDrawArrays(GL_LINES, 0, m_debug_lines.size());
+		glDrawArrays(GL_LINES, 0, (GLsizei)m_debug_lines.size());
 
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 		glBindVertexArray(0);

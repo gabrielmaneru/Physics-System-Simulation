@@ -1,3 +1,10 @@
+/**
+ * @file window.h
+ * @author Gabriel Maneru, gabriel.m, gabriel.m@digipen.edu
+ * @date 01/28/2020
+ * @brief Window manager
+ * @copyright Copyright (C) 2020 DigiPen Institute of Technology.
+**/
 #pragma once
 #include <GLFW/glfw3.h>
 #include <unordered_set>
@@ -15,6 +22,7 @@ public:
 	void present();
 	void shutdown();
 	glm::vec2 get_mouse_ndc();
+	GLFWwindow* get_handler();
 	static c_window& get_instance();
 
 	int m_width{1920};

@@ -1,3 +1,10 @@
+/**
+ * @file ray.h
+ * @author Gabriel Maneru, gabriel.m, gabriel.m@digipen.edu
+ * @date 01/28/2020
+ * @brief Ray basic structure for raycasting
+ * @copyright Copyright (C) 2020 DigiPen Institute of Technology.
+**/
 #pragma once
 #include <glm/glm.hpp>
 

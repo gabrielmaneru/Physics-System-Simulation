@@ -1,9 +1,19 @@
+/**
+ * @file shader_program.cpp
+ * @author Gabriel Maneru, gabriel.m, gabriel.m@digipen.edu
+ * @date 01/28/2020
+ * @brief Shader Program structure
+ * @copyright Copyright (C) 2020 DigiPen Institute of Technology.
+**/
 #include "shader_program.h"
 #include <glad/glad.h>
 #include <fstream>
 #include <sstream>
 #include <iostream>
 
+/**
+ * Create the program from two paths
+**/
 Shader_Program::Shader_Program(const std::string & vtx, const std::string & frag)
 {
 	const char * path = "../resources/shaders/";
@@ -12,17 +22,27 @@ Shader_Program::Shader_Program(const std::string & vtx, const std::string & frag
 	if (create_handle())
 		compile_program();
 }
+
+/**
+ * Destructor
+**/
 Shader_Program::~Shader_Program()
 {
 	if (m_handle > 0)
 		glDeleteProgram(m_handle);
 }
 
+/**
+ * Check if the shader is ready to use
+**/
 bool Shader_Program::is_valid()const
 {
 	return m_handle > 0 && m_linked;
 }
 
+/**
+ * Try to recompile the program
+**/
 void Shader_Program::recompile()
 {
 	try {
@@ -31,59 +51,58 @@ void Shader_Program::recompile()
 	catch (const std::string & log) { std::cout << log; }
 }
 
+/**
+ * Use the shader
+**/
 void Shader_Program::use() const
 {
 	if (is_valid())
 		glUseProgram(m_handle);
 }
 
+/**
+ * Several Uniform Settors
+**/
 void Shader_Program::set_uniform(const char * name, bool val) const
 {
 	set_uniform(name, val ? 1 : 0);
 }
-
 void Shader_Program::set_uniform(const char * name, int val) const
 {
 	int loc = uniform_location(name);
 	if (loc >= 0)
 		glUniform1i(loc, val);
 }
-
 void Shader_Program::set_uniform(const char * name, float val) const
 {
 	int loc = uniform_location(name);
 	if (loc >= 0)
 		glUniform1f(loc, val);
 }
-
 void Shader_Program::set_uniform(const char * name, const glm::vec2 & v) const
 {
 	int loc = uniform_location(name);
 	if (loc >= 0)
 		glUniform2f(loc, v.x, v.y);
 }
-
 void Shader_Program::set_uniform(const char * name, const glm::vec3 & v) const
 {
 	int loc = uniform_location(name);
 	if (loc >= 0)
 		glUniform3f(loc, v.x, v.y, v.z);
 }
-
 void Shader_Program::set_uniform(const char * name, const glm::vec4 & v) const
 {
 	int loc = uniform_location(name);
 	if (loc >= 0)
 		glUniform4f(loc, v.x, v.y, v.z, v.w);
 }
-
 void Shader_Program::set_uniform(const char * name, const glm::mat3 & m) const
 {
 	int loc = uniform_location(name);
 	if (loc >= 0)
 		glUniformMatrix3fv(loc, 1, GL_FALSE, &m[0][0]);
 }
-
 void Shader_Program::set_uniform(const char * name, const glm::mat4 & m) const
 {
 	int loc = uniform_location(name);
@@ -91,6 +110,9 @@ void Shader_Program::set_uniform(const char * name, const glm::mat4 & m) const
 		glUniformMatrix4fv(loc, 1, GL_FALSE, &m[0][0]);
 }
 
+/**
+ * Try to create a handle
+**/
 bool Shader_Program::create_handle()
 {
 	if (m_handle <= 0)
@@ -105,6 +127,9 @@ bool Shader_Program::create_handle()
 	return true;
 }
 
+/**
+ * Compile shaders and link the program
+**/
 void Shader_Program::compile_program()
 {
 	if (compile_shader(paths[0], e_shader_type::VERTEX))
@@ -115,6 +140,9 @@ void Shader_Program::compile_program()
 		throw std::string("Compile Error");
 }
 
+/**
+ * Send shader to opengl and compile it
+**/
 bool Shader_Program::compile_shader(const std::string & filename, const e_shader_type & type)
 {
 	// Open file
@@ -178,6 +206,10 @@ bool Shader_Program::compile_shader(const std::string & filename, const e_shader
 	
 	return true;
 }
+
+/**
+ * Link current shaders into the program
+**/
 void Shader_Program::link()
 {
 	if (m_linked || m_handle <= 0)
@@ -206,6 +238,9 @@ void Shader_Program::link()
 		m_linked = true;
 }
 
+/**
+ * Uniform location mapping tool
+**/
 int Shader_Program::uniform_location(const char * name) const
 {
 	auto it = m_uniform_location_map.find(name);

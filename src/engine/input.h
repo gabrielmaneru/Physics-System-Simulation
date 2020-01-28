@@ -1,3 +1,10 @@
+/**
+ * @file input.h
+ * @author Gabriel Maneru, gabriel.m, gabriel.m@digipen.edu
+ * @date 01/28/2020
+ * @brief Input manager
+ * @copyright Copyright (C) 2020 DigiPen Institute of Technology.
+**/
 #pragma once
 #include <unordered_set>
 

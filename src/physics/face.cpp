@@ -1,6 +1,16 @@
+/**
+ * @file face.cpp
+ * @author Gabriel Maneru, gabriel.m, gabriel.m@digipen.edu
+ * @date 01/28/2020
+ * @brief Face structure
+ * @copyright Copyright (C) 2020 DigiPen Institute of Technology.
+**/
 #include "face.h"
 #include "half_edge.h"
 
+/**
+ * Recompute face indices base on the cylclic edges
+**/
 void face::refresh()
 {
 	m_indices.clear();

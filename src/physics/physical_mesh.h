@@ -1,5 +1,11 @@
+/**
+ * @file physical_mesh.h
+ * @author Gabriel Maneru, gabriel.m, gabriel.m@digipen.edu
+ * @date 01/28/2020
+ * @brief Physical mesh structure using half-edge representation
+ * @copyright Copyright (C) 2020 DigiPen Institute of Technology.
+**/
 #pragma once
-#include "vertex.h"
 #include "face.h"
 #include "half_edge.h"
 #include "ray.h"
@@ -13,6 +19,7 @@ struct ray_info
 	float m_time{FLT_MAX};
 	glm::vec3 m_normal;
 };
+
 struct physical_mesh
 {
 	physical_mesh() = default;

@@ -1,6 +1,16 @@
+/**
+ * @file physical_mesh.cpp
+ * @author Gabriel Maneru, gabriel.m, gabriel.m@digipen.edu
+ * @date 01/28/2020
+ * @brief Physical mesh structure using half-edge representation
+ * @copyright Copyright (C) 2020 DigiPen Institute of Technology.
+**/
 #include "physical_mesh.h"
 #include <engine/drawer.h>
 
+/**
+ * Extract the plane of a face
+**/
 glm::vec4 physical_mesh::get_face_plane(const half_edge * hedge) const
 {
 	glm::vec3 p0 = m_vertices[hedge->get_start()];
@@ -14,6 +24,9 @@ glm::vec4 physical_mesh::get_face_plane(const half_edge * hedge) const
 	return glm::vec4(n.x, n.y, n.z, glm::dot(n, p0));
 }
 
+/**
+ * Check if two twin hedges are coplanar
+**/
 bool physical_mesh::is_coplanar(const half_edge * hedge) const
 {
 	if (hedge->m_twin == nullptr)
@@ -26,17 +39,24 @@ bool physical_mesh::is_coplanar(const half_edge * hedge) const
 	return abs(dist_to_plane) < FLT_EPSILON;
 }
 
+/**
+ * Perform ray intersection against the mesh
+**/
 ray_info physical_mesh::ray_cast(const ray & local_ray)const
 {
 	ray_info info;
 	for (auto f : m_faces)
 	{
 		glm::vec4 face_plane = get_face_plane(f.m_hedge_start);
+
+		// Intersect the plane of the face
 		float time = local_ray.ray_cast_plane(face_plane);
 		if (time >= 0.0f && time < info.m_time)
 		{
 			glm::vec3 proj_point{ local_ray.get_point(time) };
 			glm::vec3 p0 = m_vertices[f.m_indices[0]];
+
+			// Triangulate the face (as a fan)
 			for (uint tri = 1; tri < f.m_indices.size() - 1; tri++)
 			{
 				glm::vec3 p1 = m_vertices[f.m_indices[tri]];
@@ -49,6 +69,8 @@ ray_info physical_mesh::ray_cast(const ray & local_ray)const
 				float d_v2 = glm::dot(v2, v2);
 				float d_v1_v2 = glm::dot(v1, v2);
 
+				// Check the affine coordinates to see if the ray
+				// lies inside the triangle
 				float d = d_v1*d_v2 - d_v1_v2*d_v1_v2;
 				if (glm::abs(d) > c_epsilon)
 				{
@@ -73,11 +95,17 @@ ray_info physical_mesh::ray_cast(const ray & local_ray)const
 	return info;
 }
 
+/**
+ * Move constructor for the mesh(in order to later build a vector of meshes)
+**/
 physical_mesh::physical_mesh(physical_mesh && o)
 	:m_vertices(std::move(o.m_vertices)),
 	m_hedges(std::move(o.m_hedges)),
 	m_faces(std::move(o.m_faces)) {}
 
+/**
+ * Add a new face to the mesh
+**/
 void physical_mesh::add_face(const std::vector<uint>& indices)
 {
 	// Assert minimum face is a triangle
@@ -118,6 +146,9 @@ void physical_mesh::add_face(const std::vector<uint>& indices)
 	last->m_next = f->m_hedge_start;
 }
 
+/**
+ * Indentify the twin edges in the mesh
+**/
 void physical_mesh::create_twins()
 {
 	// For each face
@@ -156,6 +187,9 @@ void physical_mesh::create_twins()
 	}
 }
 
+/**
+ * Merges coplanar faces
+**/
 void physical_mesh::merge_coplanar()
 {
 	// For each face
@@ -240,6 +274,9 @@ void physical_mesh::merge_coplanar()
 
 }
 
+/**
+ * Helper function for remove edges
+**/
 void physical_mesh::remove_edge(half_edge * hedge)
 {
 	std::list<half_edge>::iterator it = m_hedges.begin();

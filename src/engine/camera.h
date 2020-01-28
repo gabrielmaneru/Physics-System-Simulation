@@ -1,12 +1,10 @@
-/* Start Header -------------------------------------------------------
-Copyright (C) 2019 DigiPen Institute of Technology.
-Reproduction or disclosure of this file or its contents without the prior written consent of
-DigiPen Institute of Technology is prohibited.
-File Name:	camera.h
-Purpose: Camera Base
-Author: Gabriel Mañeru - gabriel.m
-- End Header --------------------------------------------------------*/
-
+/**
+ * @file camera.h
+ * @author Gabriel Maneru, gabriel.m, gabriel.m@digipen.edu
+ * @date 01/28/2020
+ * @brief Camera structure
+ * @copyright Copyright (C) 2020 DigiPen Institute of Technology.
+**/
 #pragma once
 #include <glm/glm.hpp>
 struct camera

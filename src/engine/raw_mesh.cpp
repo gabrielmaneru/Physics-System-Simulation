@@ -1,6 +1,16 @@
+/**
+ * @file raw_mesh.cpp
+ * @author Gabriel Maneru, gabriel.m, gabriel.m@digipen.edu
+ * @date 01/28/2020
+ * @brief Raw Mesh structure
+ * @copyright Copyright (C) 2020 DigiPen Institute of Technology.
+**/
 #include "raw_mesh.h"
 #include <fstream>
 
+/**
+ * Local functions for parsing the files
+**/
 void parse_vec3(std::string line, glm::vec3& v)
 {
 	size_t s = 0;
@@ -28,7 +38,7 @@ void parse_indices(std::string line, std::vector<uint>& f)
 	while (line.size() > 0)
 	{
 		size_t b = line.find('/');
-		size_t s = line.find(' ');
+		s = line.find(' ');
 		if (s > line.length()) s = line.length();
 		if (b > s) b = s;
 
@@ -39,6 +49,9 @@ void parse_indices(std::string line, std::vector<uint>& f)
 	}
 }
 
+/**
+ * Constructor from file
+**/
 raw_mesh::raw_mesh(const std::string & path)
 {
 	std::ifstream file;
