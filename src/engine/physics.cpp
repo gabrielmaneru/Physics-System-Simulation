@@ -26,7 +26,6 @@ ray_info_detailed c_physics::ray_cast(const ray & world_ray)const
 	}
 	return info;
 }
-
 void c_physics::draw_debug_bodies() const
 {
 	for (uint i = 0; i < m_bodies.size(); i++)
@@ -48,7 +47,6 @@ void c_physics::draw_debug_bodies() const
 		drawer.add_debug_line(m_bodies[i].m_position, m_bodies[i].m_position + m_bodies[i].m_angular_momentum, blue);
 	}
 }
-
 ray c_physics::get_mouse_ray() const
 {
 	glm::vec4 mouse_ndc{ glm::vec3{window.get_mouse_ndc(),0.0f},1.0f };
@@ -60,39 +58,33 @@ ray c_physics::get_mouse_ray() const
 
 bool c_physics::initialize()
 {
-	glm::mat3 cube_inertia{ 1.f*.5f*.5f / 6.0f };
-	glm::mat3 sphere_inertia{ (2.f / 5.f)*1.f*(1.f*1.f) };
-
 	body b{};
+	b.m_position = glm::vec3(0.0f, 0.0f, 0.0f);
+	add_body(b, "cube.obj");
+
 	b.m_position = glm::vec3(2.0f, 0.0f, 0.0f);
-	add_body(b, "cube.obj").set_inertia(cube_inertia);
+	add_body(b, "sphere.obj");
 
-	b.m_position = glm::vec3(2.0f, 0.0f, 4.0f);
-	add_body(b, "sphere.obj").set_inertia(sphere_inertia);
-
-	b.m_position = glm::vec3(4.0f, 0.0f, 0.0f);
+	b.m_position = glm::vec3(-2.0f, 0.0f, 0.0f);
 	add_body(b, "cylinder.obj");
 
 	b.m_position = glm::vec3(0.0f, 0.0f, 2.0f);
 	add_body(b, "gourd.obj");
 
-	b.m_position = glm::vec3(2.0f, 0.0f, 2.0f);
+	b.m_position = glm::vec3(0.0f, 0.0f, -2.0f);
 	add_body(b, "icosahedron.obj");
 
-	b.m_position = glm::vec3(4.0f, 0.0f, 2.0f);
+	b.m_position = glm::vec3(2.0f, 0.0f, 2.0f);
 	add_body(b, "octohedron.obj");
 
-	b.m_position = glm::vec3(0.0f, 0.0f, 4.0f);
+	b.m_position = glm::vec3(4.0f, 0.0f, 2.0f);
 	add_body(b, "quad.obj");
 
-	b.m_position = glm::vec3(4.0f, 0.0f, 4.0f);
+	b.m_position = glm::vec3(2.0f, 0.0f, 4.0f);
 	add_body(b, "triangle.obj");
 
-	b.m_position = glm::vec3(0.0f, 0.0f, 0.0f);
-	add_body(b, "bunny.obj");
 	return true;
 }
-
 void c_physics::update()
 {
 	for (auto& b : m_bodies)
@@ -100,19 +92,20 @@ void c_physics::update()
 	draw_debug_bodies();
 
 	ray mouse_ray = get_mouse_ray();
+
 	ray_info_detailed info = ray_cast(mouse_ray);
 	if (info.m_intersected)
 	{
-		drawer.add_debug_line(info.m_pi, info.m_pi + 0.1f*info.m_normal, blue);
-		drawer.add_debug_cube(mouse_ray.m_start, 0.0001f, green);
+		body& b = m_bodies[info.m_body];
+		drawer.add_debug_line(info.m_pi, tr_point(b.get_model(),b.m_mass_center), yellow);
+		drawer.add_debug_line(info.m_pi, info.m_pi + 0.1f*info.m_normal, magenta);
+		drawer.add_debug_cube(mouse_ray.m_start, 0.0001f, white);
 		if (input.m_mouse_triggered[0])
 		{
-			body& b = m_bodies[info.m_body];
 			b.add_force(glm::normalize(mouse_ray.m_direction), info.m_pi);
 		}
 	}
 }
-
 void c_physics::shutdown()
 {
 }
@@ -140,7 +133,6 @@ body& c_physics::add_body(const body & b, std::string file)
 	m_meshes.emplace_back(std::move(m));
 	return m_bodies.back();
 }
-
 c_physics & c_physics::get_instance()
 {
 	static c_physics instance;

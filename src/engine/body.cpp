@@ -14,33 +14,28 @@ void body::integrate(float dt)
 	m_angular_momentum += m_torques_accumulation;
 	m_torques_accumulation = glm::vec3{ 0.0f };
 
+	// Transform inertia
+	glm::mat3 R = glm::toMat3(m_rotation);
+	glm::mat3 w_inv_inertia = R * m_inv_inertia * glm::transpose(R);
+
 	// Apply rotation
-	glm::vec3 w = m_inertia_inv * m_angular_momentum;
-	glm::quat qw{ 0.0f, w.x, w.y, w.z };
-	glm::quat d_R = .5f * (qw * m_rotation);
-	m_rotation = glm::normalize(m_rotation + d_R * dt);
-
+	glm::vec3 w = w_inv_inertia * m_angular_momentum;
+	glm::quat w_quat{ 0.0f, w.x, w.y, w.z };
+	m_rotation = glm::normalize(m_rotation + w_quat * m_rotation * dt);
 }
-
 body & body::set_inertia(glm::mat3 i)
 {
-	m_inertia = i;
-	m_inertia_inv = glm::inverse(i);
+	m_inv_inertia = glm::inverse(i);
 	return *this;
 }
-
 void body::add_force(glm::vec3 force, glm::vec3 point)
 {
-	glm::vec3 R = point - m_mass_center;
-	R = tr_vector(glm::inverse(get_model()), R);
+	glm::vec3 w_center = tr_point(get_model(), m_mass_center);
+	glm::vec3 R = point - w_center;
 
 	m_forces_accumulation += force;
-
-	float d = glm::dot(glm::normalize(force), glm::normalize(R));
-	if (glm::abs(d) < 1.0f - c_epsilon)
-		m_torques_accumulation += glm::cross(R, force);
+	m_torques_accumulation += glm::cross(R, force);
 }
-
 glm::mat4 body::get_model()const
 {
 	return glm::translate(glm::mat4(1.0f), m_position) * glm::mat4_cast(m_rotation);
@@ -50,7 +45,6 @@ glm::vec3 tr_point(glm::mat4 m, glm::vec3 v)
 {
 	return glm::vec3(m*glm::vec4(v, 1.0f));
 }
-
 glm::vec3 tr_vector(glm::mat4 m, glm::vec3 v)
 {
 	return glm::vec3(m*glm::vec4(v, 0.0f));

@@ -25,6 +25,7 @@ public:
 	bool initialize();
 	void update();
 	void shutdown();
+
 	body& add_body(const body & b, std::string file);
 	static c_physics& get_instance();
 };
