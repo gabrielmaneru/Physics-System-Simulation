@@ -31,7 +31,7 @@ void body::integrate(float dt)
 	// Apply rotation
 	glm::vec3 w = w_inv_inertia * m_angular_momentum;
 	glm::quat w_quat{ 0.0f, w.x, w.y, w.z };
-	m_rotation = glm::normalize(m_rotation + w_quat * m_rotation * dt);
+	m_rotation = glm::normalize(m_rotation + .5f * w_quat * m_rotation * dt);
 }
 body & body::set_position(glm::vec3 pos)
 {
@@ -45,8 +45,7 @@ body & body::set_inertia(glm::mat3 i)
 }
 void body::add_force(glm::vec3 force, glm::vec3 point)
 {
-	glm::vec3 w_center = tr_point(get_model(), m_mass_center);
-	glm::vec3 R = point - w_center;
+	glm::vec3 R = point - m_position;
 
 	m_forces_accumulation += force;
 	m_torques_accumulation += glm::cross(R, force);

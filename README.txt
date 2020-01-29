@@ -6,5 +6,5 @@
 
 -Right click for camera control (Shift for speed)
 -Left click for selecting a body
-	-After selecting a body, click it to create an impulse at that point (Press shift for a slight impulse)
+	-After selecting a body, click it to create an impulse at that point (Press shift+click for a slight impulse)
 -Press R for resetting the scene.

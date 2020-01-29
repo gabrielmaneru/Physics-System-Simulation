@@ -119,5 +119,29 @@ TEST(half_edge, half_edge_merge_coplanar)
 	mesh.create_twins();
 	mesh.merge_coplanar();
 
-	ASSERT_TRUE(false);
+	ASSERT_TRUE(mesh.m_faces.size() == 1);
+	ASSERT_TRUE(mesh.m_faces.front().m_indices.size() == 4);
+	ASSERT_TRUE(mesh.m_hedges.size() == 4);
+}
+
+TEST(half_edge, half_edge_merge_coplanar_full_face)
+{
+	physical_mesh mesh{};
+	mesh.m_vertices = {
+		glm::vec3{0.0f, 0.0f, 0.0f},
+		glm::vec3{1.0f, 0.0f, 0.0f},
+		glm::vec3{1.0f, 1.0f, 0.0f},
+		glm::vec3{0.0f, 1.0f, 0.0f},
+		glm::vec3{0.5f, 0.5f, 0.0f}
+	};
+	mesh.add_face({ 0u,1u,4u });
+	mesh.add_face({ 1u,2u,4u });
+	mesh.add_face({ 2u,3u,4u });
+	mesh.add_face({ 3u,0u,4u });
+	mesh.create_twins();
+	mesh.merge_coplanar();
+
+	ASSERT_TRUE(mesh.m_faces.size() == 1);
+	ASSERT_TRUE(mesh.m_faces.front().m_indices.size() == 4);
+	ASSERT_TRUE(mesh.m_hedges.size() == 4);
 }

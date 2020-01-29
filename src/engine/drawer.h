@@ -16,14 +16,14 @@ struct debug_vertex
 };
 
 using uint = unsigned int;
-class Shader_Program;
+class shader_program;
 class c_drawer
 {
 	uint m_debug_vao{0};
 	uint m_debug_vbo{0};
 	uint m_debug_size{0};
 	std::vector<debug_vertex> m_debug_lines;
-	Shader_Program* m_debug_shader{nullptr};
+	shader_program* m_debug_shader{nullptr};
 
 public:
 	bool initialize();
@@ -37,6 +37,7 @@ public:
 	camera m_camera{};
 };
 #define drawer c_drawer::get_instance()
+
 const glm::vec3 red{ .5f, .0f, .0f };
 const glm::vec3 yellow{ .5f, .5f, .0f };
 const glm::vec3 green{ .0f, .5f, .0f };

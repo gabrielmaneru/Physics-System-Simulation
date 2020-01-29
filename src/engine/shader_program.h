@@ -10,11 +10,11 @@
 #include <string>
 #include <map>
 
-class Shader_Program
+class shader_program
 {
 public:
-	Shader_Program(const std::string& vtx, const std::string& frag);
-	~Shader_Program();
+	shader_program(const std::string& vtx, const std::string& frag);
+	~shader_program();
 
 	bool is_valid()const;
 	void recompile();

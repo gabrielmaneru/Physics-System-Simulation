@@ -31,5 +31,4 @@ struct body
 
 	float     m_mass{ 1.0f };
 	glm::mat3 m_inv_inertia{ 1.0f };
-	glm::vec3 m_mass_center{ 0.0f };
 };

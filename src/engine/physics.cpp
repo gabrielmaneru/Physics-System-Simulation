@@ -77,7 +77,7 @@ void c_physics::do_object_picking()
 	if (info.m_intersected)
 	{
 		body& b = m_bodies[info.m_body];
-		drawer.add_debug_line(info.m_pi, tr_point(b.get_model(), b.m_mass_center), yellow);
+		drawer.add_debug_line(info.m_pi, b.m_position, yellow);
 		drawer.add_debug_line(info.m_pi, info.m_pi + 0.1f*info.m_normal, magenta);
 		drawer.add_debug_cube(mouse_ray.m_start, 0.0001f, white);
 		m_hovered = static_cast<int>(info.m_body);
@@ -199,7 +199,6 @@ void c_physics::drawGUI()
 			ImGui::InputFloat3("Linear M", &b.m_position.x);
 			ImGui::InputFloat3("Angular M", &b.m_position.x);
 			ImGui::InputFloat("Mass", &b.m_mass);
-			ImGui::InputFloat3("Center of Mass", &b.m_mass_center.x);
 
 			ImGui::NewLine();
 			ImGui::NewLine();

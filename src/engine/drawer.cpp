@@ -19,7 +19,7 @@ bool c_drawer::initialize()
 
 	// Create shaders
 	try {
-		m_debug_shader = new Shader_Program("debug.vert", "debug.frag");
+		m_debug_shader = new shader_program("debug.vert", "debug.frag");
 	}
 	catch (const std::string & log) { std::cout << log; }
 
