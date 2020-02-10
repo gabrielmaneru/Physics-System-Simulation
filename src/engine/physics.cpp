@@ -80,6 +80,20 @@ void c_physics::do_object_picking()
 		drawer.add_debug_line(info.m_pi, b.m_position, yellow);
 		drawer.add_debug_line(info.m_pi, info.m_pi + 0.1f*info.m_normal, magenta);
 		drawer.add_debug_cube(mouse_ray.m_start, 0.0001f, white);
+		{
+			glm::mat4 m = b.get_model();
+			glm::mat4 inv_m = glm::inverse(m);
+			glm::vec3 dir = glm::normalize(tr_vector(inv_m, info.m_pi - b.m_position));
+
+			glm::vec3 sp1 = m_meshes[info.m_body].support_point_bruteforce(dir);
+			glm::vec3 sp2 = m_meshes[info.m_body].support_point_hillclimb(dir);
+
+			sp1 = tr_point(m, sp1);
+			sp2 = tr_point(m, sp2);
+
+			drawer.add_debug_cube(sp1, 0.08f, green);
+			drawer.add_debug_cube(sp2, 0.06f, red);
+		}
 		m_hovered = static_cast<int>(info.m_body);
 
 		if (input.m_mouse_triggered[0])
@@ -119,28 +133,28 @@ bool c_physics::initialize()
 		.set_inertia({ 2.f / 5.f, 0.f, 0.f,
 					   0.f, 2.f / 5.f, 0.f,
 					   0.f, 0.f, 2.f / 5.f });
-
+	
 	add_body("cylinder.obj")
 		.set_position({ 4.0f, 0.0f, 0.0f })
 		.set_inertia({ 1.f / 2.f, 0.f, 0.f,
 					   0.f, 1.f / 4.f, 0.f,
 					   0.f, 0.f, 1.f / 2.f });
-
+	
 	add_body("gourd.obj")
 		.set_position({ 0.0f, 0.0f, 2.0f });
-
+	
 	add_body("icosahedron.obj")
 		.set_position({ 0.0f, 0.0f, -2.0f });
-
+	
 	add_body("octohedron.obj")
 		.set_position({ 2.0f, 0.0f, 2.0f });
-
+	
 	add_body("quad.obj")
 		.set_position({ 4.0f, 0.0f, 2.0f })
 		.set_inertia({ 1.f / 2.f, 0.f, 0.f,
 					   0.f, 1.f / 2.f, 0.f,
 					   0.f, 0.f, 1.f / 4.f });
-
+	
 	add_body("triangle.obj")
 		.set_position({ 2.0f, 0.0f, 4.0f })
 		.set_inertia({ 1.f / 2.f, 0.f, 0.f,
