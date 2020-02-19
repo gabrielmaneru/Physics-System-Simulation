@@ -204,7 +204,7 @@ void c_editor::drawGui()const
 		body& b = physics.m_bodies[m_selected];
 		if (ImGui::Begin("Body", nullptr))
 		{
-			ImGui::InputFloat3("Position", &b.m_position.x);
+			ImGui::DragFloat3("Position", &b.m_position.x, 0.01f);
 			ImGui::InputFloat4("Rotation", &b.m_rotation.x);
 			ImGui::InputFloat3("Linear M", &b.m_position.x);
 			ImGui::InputFloat3("Angular M", &b.m_position.x);

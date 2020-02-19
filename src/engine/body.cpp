@@ -55,11 +55,3 @@ glm::mat4 body::get_model()const
 	return glm::translate(glm::mat4(1.0f), m_position) * glm::mat4_cast(m_rotation);
 }
 
-glm::vec3 tr_point(glm::mat4 m, glm::vec3 v)
-{
-	return glm::vec3(m*glm::vec4(v, 1.0f));
-}
-glm::vec3 tr_vector(glm::mat4 m, glm::vec3 v)
-{
-	return glm::vec3(m*glm::vec4(v, 0.0f));
-}

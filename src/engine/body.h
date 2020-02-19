@@ -8,8 +8,6 @@
 #pragma once
 #include <glm/glm.hpp>
 
-glm::vec3 tr_point(glm::mat4 m, glm::vec3 v);
-glm::vec3 tr_vector(glm::mat4 m, glm::vec3 v);
 
 struct body
 {

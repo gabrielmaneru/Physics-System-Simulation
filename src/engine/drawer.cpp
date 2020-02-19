@@ -10,6 +10,12 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <iostream>
+#include <Windows.h>
+
+// Enable High performance GPU
+extern "C" {
+	_declspec(dllexport) DWORD NvOptimusEnablement = 0x00000001;
+}
 
 bool c_drawer::initialize()
 {

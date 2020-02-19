@@ -138,4 +138,13 @@
 #include "gtc/quaternion.hpp"
 #include "gtx/norm.hpp"
 
+
 const float c_epsilon{ 1e-4f };
+
+inline glm::vec3 tr_point(glm::mat4 m, glm::vec3 v)
+{
+	return glm::vec3(m*glm::vec4(v, 1.0f));
+}
+inline glm::vec3 tr_vector(glm::mat4 m, glm::vec3 v){
+	return glm::vec3(m*glm::vec4(v, 0.0f));
+}

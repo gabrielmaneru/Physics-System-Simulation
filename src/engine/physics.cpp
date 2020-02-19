@@ -7,6 +7,7 @@
 **/
 #include "physics.h"
 #include "drawer.h"
+#include <physics/gjk.h>
 
 /**
  * Perform ray instersection with the world
@@ -39,40 +40,18 @@ bool c_physics::collision_narrow(const physical_mesh & m1,
 	const body & b1,
 	const body & b2) const
 {
-	const glm::mat4 mod1 = b1.get_model();
-	const glm::mat4 mod2 = b2.get_model();
-	const glm::mat4 invmod1 = glm::inverse(mod1);
-	const glm::mat4 invmod2 = glm::inverse(mod2);
-	auto support = [&](glm::vec3 dir)->glm::vec3
-	{
-		glm::vec3 dir1 = tr_vector(invmod1, dir);
-		glm::vec3 dir2 = tr_vector(invmod2, dir);
-		glm::vec3 A = tr_point(mod1, m1.support_point_bruteforce(dir1));
-		glm::vec3 B = tr_point(mod2, m2.support_point_bruteforce(-dir2));
-		return A - B;
-	};
-
-	glm::vec3 dir{ b2.m_position - b1.m_position };
-	std::vector<glm::vec3> simplex{ support(dir)};
-	for (;;)
-	{
-		dir = -simplex.back();
-		glm::vec3 next = support(dir);
-		if (glm::dot(next, dir) <= 0.0f)
-			break;
-		simplex.push_back(next);
-			break;
-	}
-
+	gjk solver(m1, m2, b1.get_model(), b2.get_model());
+	bool gjk_status = solver.evaluate(b2.m_position - b1.m_position);
+	
 	// Origin
 	drawer.add_debugline_cube(glm::vec3(0.0f), 0.1f, white);
 
 	// Simplex
-	for (auto p : simplex)
+	for (uint i = 0; i < solver.m_simplex.m_dim; ++i)
 	{
-		drawer.add_debugline_cube(p, 0.2f, blue);
-		for (auto n : simplex)
-			drawer.add_debugline(p, n, red);
+		drawer.add_debugline_cube(solver.m_simplex.m_points[i], 0.2f, blue);
+		for (uint j = i+1; j < solver.m_simplex.m_dim; ++j)
+			drawer.add_debugline(solver.m_simplex.m_points[i], solver.m_simplex.m_points[j], red);
 	}
 	
 	// Minkowski
@@ -80,7 +59,7 @@ bool c_physics::collision_narrow(const physical_mesh & m1,
 		for (auto v2 : m2.m_vertices)
 			drawer.add_debugline_cube(tr_point(b1.get_model(), v1) - tr_point(b2.get_model(), v2), 0.1f, black);
 
-	return true;
+	return gjk_status;
 }
 
 /**
