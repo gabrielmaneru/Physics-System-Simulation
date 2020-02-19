@@ -40,5 +40,5 @@ struct physical_mesh
 	bool is_coplanar(const half_edge* hedge)const;
 	ray_info ray_cast(const ray& local_ray)const;
 	glm::vec3 support_point_bruteforce(glm::vec3 dir)const;
-	glm::vec3 support_point_hillclimb(glm::vec3 dir)const;
+	glm::vec3 support_point_hillclimb(glm::vec3 dir, const half_edge* start = nullptr)const;
 };

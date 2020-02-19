@@ -338,39 +338,25 @@ glm::vec3 physical_mesh::support_point_bruteforce(glm::vec3 dir)const
 	}
 	return sp;
 }
-/**
-* Computes the support point using the hill-climbing approach
-**/
-glm::vec3 physical_mesh::support_point_hillclimb(glm::vec3 dir)const
+glm::vec3 physical_mesh::support_point_hillclimb(glm::vec3 dir, const half_edge * start) const
 {
-	const half_edge * best{ nullptr };
-	float dist;
+	if (start == nullptr)
+		start = &m_hedges.front();
 
-	const half_edge * edge = &m_hedges.front();
-	const half_edge * start = edge;
+	const half_edge * best = nullptr;
+	float dist = glm::dot(m_vertices[start->get_start()], dir);
 
-	bool improved{ false };
-	bool once{ true };
-	while (true)
+	const half_edge * it{ start->m_next };
+	while (it != start)
 	{
-		do
-		{
-			float d = glm::dot(m_vertices[edge->get_start()], dir);
-			if (best == nullptr || d > dist)
-				dist = d, best = edge, improved = true;
-			edge = edge->m_next;
-		} while (edge != start);
-
-		if (best->m_twin)
-		{
-			if(improved)
-				start = edge = best->m_twin, improved = false;
-			else if (once)
-				start = edge = best->m_twin, improved = false, once = false;
-			else
-				return m_vertices[best->get_start()];
-		}
-		else
-			return m_vertices[best->get_start()];
+		float d = glm::dot(m_vertices[it->get_start()], dir);
+		if (d > dist)
+			dist = d, best = it;
+		it = it->m_next;
 	}
+
+	if (best == nullptr)
+		return m_vertices[start->get_start()];
+	else
+		return support_point_hillclimb(dir, best);
 }
