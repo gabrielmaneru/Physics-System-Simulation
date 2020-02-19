@@ -15,7 +15,8 @@ struct raw_mesh
 {
 	raw_mesh() = default;
 	raw_mesh(const std::string& path);
-
+	void fix_centroid();
+	
 	std::vector<glm::vec3> m_vertices;
 	std::vector< std::vector<uint> > m_faces;
 };

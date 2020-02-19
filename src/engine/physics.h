@@ -21,23 +21,17 @@ struct ray_info_detailed : public ray_info
 class c_physics
 {
 	ray_info_detailed ray_cast(const ray&)const;
-	void draw_debug_bodies()const;
-	void do_object_picking();
 
 	std::vector<physical_mesh> m_meshes;
 	std::vector<body> m_bodies;
 	std::map<std::string, raw_mesh> m_loaded_meshes;
-	int m_selected{ -1 };
-	int m_hovered{ -1 };
 
 public:
-	bool initialize();
 	void update();
-	void shutdown();
-	void reset();
-
-	void drawGUI();
+	void clean();
 	body& add_body(std::string file);
+
 	static c_physics& get_instance();
+	friend class c_editor;
 };
 #define physics c_physics::get_instance()

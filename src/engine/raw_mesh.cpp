@@ -75,4 +75,16 @@ raw_mesh::raw_mesh(const std::string & path)
 		}
 	}
 	file.close();
+	fix_centroid();
 }
+
+ void raw_mesh::fix_centroid()
+ {
+	 glm::vec3 centroid{ 0.0f };
+	 for (auto v : m_vertices)
+		 centroid += v;
+	 centroid /= static_cast<float>(m_vertices.size());
+
+	 for (auto& v : m_vertices)
+		 v -= centroid;
+ }

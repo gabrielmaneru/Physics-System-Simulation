@@ -16,10 +16,12 @@
 **/
 bool engine::initialize()
 {
-	if (!window.initialize()) return false;
-	if (!physics.initialize()) return false;
-	if (!drawer.initialize()) return false;
-	if (!editor.initialize()) return false;
+	if (!window.initialize()) // Create window
+		return false;
+	if (!drawer.initialize()) // Initialize OpenGL
+		return false;
+	if (!editor.initialize()) // Create scene
+		return false;
 	return true;
 }
 
@@ -30,11 +32,15 @@ void engine::update()
 {
 	do
 	{
-		window.update();
-		physics.update();
-		drawer.render();
-		editor.drawGUI();
-		window.present();
+		// Update System
+		window.update();	// Update window
+		editor.update();	// Update editor
+		physics.update();	// Integrate physics
+
+		// Render Screen
+		drawer.render();	// Render primitives
+		editor.drawGui();	// Render ImGui
+		window.present();	// Swapbuffers
 	}
 	while (!window.should_exit());
 }
@@ -46,6 +52,5 @@ void engine::shutdown()
 {
 	editor.shutdown();
 	drawer.shutdown();
-	physics.shutdown();
 	window.shutdown();
 }

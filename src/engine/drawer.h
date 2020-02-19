@@ -14,24 +14,31 @@ struct debug_vertex
 	glm::vec3 m_pos;
 	glm::vec3 m_color;
 };
+struct debug_mesh
+{
+	unsigned m_vao{ 0 };
+	unsigned m_vbo{ 0 };
+};
 
 using uint = unsigned int;
 class shader_program;
 class c_drawer
 {
-	uint m_debug_vao{0};
-	uint m_debug_vbo{0};
-	uint m_debug_size{0};
+	debug_mesh m_line;
+	debug_mesh m_tri;
 	std::vector<debug_vertex> m_debug_lines;
+	std::vector<debug_vertex> m_debug_tri;
 	shader_program* m_debug_shader{nullptr};
 
 public:
 	bool initialize();
 	void render();
 	void shutdown();
-	void add_debug_line(glm::vec3 p0, glm::vec3 p1, glm::vec3 color);
-	void add_debug_parallelepiped(glm::vec3 p0, glm::vec3 v0, glm::vec3 v1, glm::vec3 v2, glm::vec3 color);
-	void add_debug_cube(glm::vec3 p, float size, glm::vec3 color);
+	void add_debugline(glm::vec3 p0, glm::vec3 p1, glm::vec3 color);
+	void add_debugline_parallelepiped(glm::vec3 p0, glm::vec3 v0, glm::vec3 v1, glm::vec3 v2, glm::vec3 color);
+	void add_debugline_cube(glm::vec3 p, float size, glm::vec3 color);
+	void add_debugline_list(const std::vector<glm::vec3>& pts, glm::vec3 color);
+	void add_debugtri_list(const std::vector<glm::vec3>& pts, glm::vec3 color);
 	static c_drawer& get_instance();
 
 	camera m_camera{};

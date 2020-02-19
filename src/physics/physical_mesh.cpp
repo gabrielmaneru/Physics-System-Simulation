@@ -199,9 +199,49 @@ void physical_mesh::remove_edge(half_edge * hedge)
 }
 
 /**
+ * Extract the lines of the mesh
+**/
+std::vector<glm::vec3> physical_mesh::get_lines() const
+{
+	std::vector<glm::vec3> lines;
+	for (auto f : m_faces)
+	{
+		half_edge* hedge = f.m_hedge_start;
+		do
+		{
+			lines.push_back(m_vertices[hedge->get_start()]);
+			lines.push_back(m_vertices[hedge->get_end()]);
+			hedge = hedge->m_next;
+		} while (hedge != f.m_hedge_start);
+	}
+	return lines;
+}
+/**
+ * Extract the triangles of the mesh
+**/
+std::vector<glm::vec3> physical_mesh::get_triangles() const
+{
+	std::vector<glm::vec3> tri;
+	for (auto f : m_faces)
+	{
+		half_edge* hedge = f.m_hedge_start;
+		glm::vec3 fan_0 = m_vertices[hedge->get_start()];
+		hedge = hedge->m_next;
+
+		do
+		{
+			tri.push_back(fan_0);
+			tri.push_back(m_vertices[hedge->get_start()]);
+			tri.push_back(m_vertices[hedge->get_end()]);
+			hedge = hedge->m_next;
+		} while (hedge != f.m_hedge_start);
+	}
+	return tri;
+}
+/**
  * Extract the plane of a face
 **/
-glm::vec4 physical_mesh::get_face_plane(const half_edge * hedge) const
+ glm::vec4 physical_mesh::get_face_plane(const half_edge * hedge) const
 {
 	glm::vec3 p0 = m_vertices[hedge->get_start()];
 	glm::vec3 p1 = m_vertices[hedge->get_end()];
@@ -225,7 +265,7 @@ bool physical_mesh::is_coplanar(const half_edge * hedge) const
 	glm::vec3 p_in_edge2 = m_vertices[hedge->m_twin->get_other()];
 	float dot = glm::dot(glm::vec3(plane1), p_in_edge2);
 	float dist_to_plane = dot - plane1.w;
-	return abs(dist_to_plane) < FLT_EPSILON;
+	return abs(dist_to_plane) < c_epsilon;
 }
 /**
  * Perform ray intersection against the mesh

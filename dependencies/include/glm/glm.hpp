@@ -138,4 +138,4 @@
 #include "gtc/quaternion.hpp"
 #include "gtx/norm.hpp"
 
-const float c_epsilon{ FLT_EPSILON };
+const float c_epsilon{ 1e-4f };
