@@ -46,6 +46,8 @@ void c_window::update()
 	input.clear_triggers();
 	glfwPollEvents();
 	glfwGetFramebufferSize(m_window, &m_width, &m_height);
+	m_width = glm::max(m_width, 1);
+	m_height = glm::max(m_height, 1);
 }
 
 /**

@@ -344,19 +344,28 @@ glm::vec3 physical_mesh::support_point_hillclimb(glm::vec3 dir, const half_edge 
 		start = &m_hedges.front();
 
 	const half_edge * best = nullptr;
-	float dist = glm::dot(m_vertices[start->get_start()], dir);
+	float dist = glm::dot(m_vertices[start->get_end()], dir);
 
 	const half_edge * it{ start->m_next };
 	while (it != start)
 	{
-		float d = glm::dot(m_vertices[it->get_start()], dir);
+		float d = glm::dot(m_vertices[it->get_end()], dir);
 		if (d > dist)
 			dist = d, best = it;
 		it = it->m_next;
 	}
 
 	if (best == nullptr)
-		return m_vertices[start->get_start()];
-	else
-		return support_point_hillclimb(dir, best);
+		return m_vertices[start->get_end()];
+	else if (best->m_twin != nullptr)
+	{
+		const half_edge * tw{ best->m_twin };
+		float d1 = glm::dot(m_vertices[tw->get_start()], dir);
+		float d2 = glm::dot(m_vertices[tw->get_other()], dir);
+		if (d1 > dist)
+			return support_point_hillclimb(dir, tw->m_prev);
+		if (d2 > dist)
+			return support_point_hillclimb(dir, tw->m_next);
+	}
+	return m_vertices[best->get_end()];
 }

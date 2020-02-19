@@ -21,6 +21,10 @@ struct ray_info_detailed : public ray_info
 class c_physics
 {
 	ray_info_detailed ray_cast(const ray&)const;
+	bool collision_narrow(const physical_mesh& m1,
+		const physical_mesh& m2,
+		const body& b1,
+		const body& b2)const;
 
 	std::vector<physical_mesh> m_meshes;
 	std::vector<body> m_bodies;

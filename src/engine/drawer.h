@@ -52,3 +52,4 @@ const glm::vec3 cyan{ .0f, .5f, .5f };
 const glm::vec3 blue{ .0f, .0f, .5f };
 const glm::vec3 magenta{ .5f, .0f, .5f };
 const glm::vec3 white{ .5f, .5f, .5f };
+const glm::vec3 black{ .0f, .0f, .0f };
