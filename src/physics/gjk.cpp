@@ -22,7 +22,10 @@ bool gjk::evaluate(glm::vec3 initial_dir)
 	m_dir = m_simplex.m_points[0];
 
 	// Setup PrevPoint data
-	glm::vec3 prev_p[4]{ m_dir, m_dir, m_dir, m_dir };
+	m_prev[0] = m_dir;
+	m_prev[1] = m_dir;
+	m_prev[2] = m_dir;
+	m_prev[3] = m_dir;
 	uint prev_dx{ 0u };
 	
 	do
@@ -44,7 +47,7 @@ bool gjk::evaluate(glm::vec3 initial_dir)
 		// Check if the point is already in the simplex
 		bool finish{ false };
 		for (uint i = 0; i < 4; ++i)
-			if (glm::length2(p - prev_p[i]) < c_min_distance)
+			if (glm::length2(p - m_prev[i]) < c_min_distance)
 			{
 				finish = true;
 				break;
@@ -56,7 +59,7 @@ bool gjk::evaluate(glm::vec3 initial_dir)
 		else
 		{
 			prev_dx = (prev_dx + 1) & 3;
-			prev_p[prev_dx] = p;
+			m_prev[prev_dx] = p;
 		}
 
 		//Check ending condition
@@ -134,8 +137,8 @@ glm::vec3 gjk::support(glm::vec3 dir)const
 	glm::vec3 dirA = tr_vector(m_invmod_A, dir);
 	glm::vec3 dirB = tr_vector(m_invmod_B, dir);
 
-	glm::vec3 localA = m_mesh_A.support_point_bruteforce(dirA);
-	glm::vec3 localB = m_mesh_A.support_point_bruteforce(-dirB);
+	glm::vec3 localA = m_mesh_A.support_point_hillclimb(dirA);
+	glm::vec3 localB = m_mesh_B.support_point_hillclimb(-dirB);
 
 	glm::vec3 supA = tr_point(m_mod_A, localA);
 	glm::vec3 supB = tr_point(m_mod_B, localB);
@@ -175,6 +178,7 @@ float gjk::project_origin_2D(glm::vec3 a, glm::vec3 b, glm::vec4& bary, uint& vo
 
 float gjk::project_origin_3D(glm::vec3 a, glm::vec3 b, glm::vec3 c, glm::vec4& bary, uint& voronoi_mask)const
 {
+
 	return -1;
 }
 

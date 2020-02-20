@@ -12,6 +12,7 @@
 #include <imgui/imgui.h>
 #include <imgui/imgui_impl_glfw.h>
 #include <imgui/imgui_impl_opengl3.h>
+#include <imgui/ImGuizmo.h>
 #include "window.h"
 
 /**
@@ -31,6 +32,7 @@ bool c_editor::ImGui_Init()const
 	ImGui::GetStyle().Colors[2] = ImVec4{ 1.0f, 1.0f, 1.0f, 0.6f };
 	ImGui::GetStyle().Colors[10] = ImVec4{ 0.8f, 0.0f, 0.2f, 1.0f };
 	ImGui::GetStyle().Colors[11] = ImVec4{ 0.8f, 0.0f, 0.2f, 1.0f };
+	ImGuizmo::SetOrthographic(false);
 	return true;
 }
 void c_editor::ImGui_Shutdown()const
@@ -188,7 +190,8 @@ bool c_editor::initialize()
 void c_editor::update()
 {
 	draw_debug_bodies();
-	if (!ImGui::IsWindowHovered(ImGuiHoveredFlags_AnyWindow | ImGuiHoveredFlags_AllowWhenBlockedByActiveItem))
+	if (!ImGui::IsWindowHovered(ImGuiHoveredFlags_AnyWindow | ImGuiHoveredFlags_AllowWhenBlockedByActiveItem)
+	&& !ImGuizmo::IsOver())
 		object_picking();
 	if (input.is_key_triggered(GLFW_KEY_R))
 		reset_scene();
@@ -204,13 +207,49 @@ void c_editor::drawGui()const
 		body& b = physics.m_bodies[m_selected];
 		if (ImGui::Begin("Body", nullptr))
 		{
+			static ImGuizmo::OPERATION m_operation{ ImGuizmo::TRANSLATE };
+			if (input.is_key_triggered(GLFW_KEY_1))
+				m_operation = ImGuizmo::TRANSLATE;
+			if (input.is_key_triggered(GLFW_KEY_2))
+				m_operation = ImGuizmo::ROTATE;
+
+			glm::mat4 model = b.get_model();
+			ImGuizmo::SetRect(0, 0, (float)window.m_width, (float)window.m_height);
+			ImGuizmo::BeginFrame();
+			ImGuizmo::Manipulate(
+				&drawer.m_camera.m_view[0][0],
+				&drawer.m_camera.m_proj[0][0],
+				m_operation, ImGuizmo::WORLD,
+				&model[0][0], NULL, NULL);
+
+			float matrixTranslation[3], matrixRotation[3], matrixScale[3];
+			ImGuizmo::DecomposeMatrixToComponents(&model[0][0], matrixTranslation, matrixRotation, matrixScale);
+			glm::vec3 eu_angles{ matrixRotation[0], matrixRotation[1], matrixRotation[2] };
+			switch (m_operation)
+			{
+			case ImGuizmo::TRANSLATE:
+				b.set_position(glm::vec3{ matrixTranslation[0], matrixTranslation[1], matrixTranslation[2] });
+				break;
+			case ImGuizmo::ROTATE:
+				b.set_rotation(glm::normalize(glm::quat{ glm::radians(eu_angles) }));
+				break;
+			}
+
 			ImGui::DragFloat3("Position", &b.m_position.x, 0.01f);
-			ImGui::InputFloat4("Rotation", &b.m_rotation.x);
+			if (ImGui::InputFloat4("Rotation", &b.m_rotation.x))
+				b.m_rotation = glm::normalize(b.m_rotation);
+
+			if (ImGui::Button("StopMovement"))
+				b.stop();
+			ImGui::SameLine();
+			if (ImGui::RadioButton("Freeze", b.m_freeze))
+				b.set_freeze(!b.m_freeze);
+
+			ImGui::NewLine();
 			ImGui::InputFloat3("Linear M", &b.m_position.x);
 			ImGui::InputFloat3("Angular M", &b.m_position.x);
 			ImGui::InputFloat("Mass", &b.m_mass);
-
-			ImGui::NewLine();
+			
 			ImGui::NewLine();
 
 			glm::mat3 i = glm::inverse(b.m_inv_inertia);

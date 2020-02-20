@@ -150,8 +150,8 @@ void physical_mesh::merge_coplanar()
 						edge1->m_next->m_prev = edge1->m_twin->m_prev;
 
 						// Change twin bounds
-						edge1->m_twin->m_prev->m_next = edge1->m_next;
 						edge1->m_twin->m_next->m_prev = edge1->m_prev;
+						edge1->m_twin->m_prev->m_next = edge1->m_next;
 
 						// Reconnect the new face
 						f.m_hedge_start = edge1->m_prev;
@@ -343,29 +343,22 @@ glm::vec3 physical_mesh::support_point_hillclimb(glm::vec3 dir, const half_edge 
 	if (start == nullptr)
 		start = &m_hedges.front();
 
-	const half_edge * best = nullptr;
+	const half_edge * best = start;
 	float dist = glm::dot(m_vertices[start->get_end()], dir);
 
-	const half_edge * it{ start->m_next };
-	while (it != start)
+	const half_edge * it{ start};
+	do
 	{
-		float d = glm::dot(m_vertices[it->get_end()], dir);
-		if (d > dist)
-			dist = d, best = it;
-		it = it->m_next;
-	}
+		if (it->m_twin == nullptr)
+			break;
 
-	if (best == nullptr)
-		return m_vertices[start->get_end()];
-	else if (best->m_twin != nullptr)
-	{
-		const half_edge * tw{ best->m_twin };
-		float d1 = glm::dot(m_vertices[tw->get_start()], dir);
-		float d2 = glm::dot(m_vertices[tw->get_other()], dir);
-		if (d1 > dist)
-			return support_point_hillclimb(dir, tw->m_prev);
-		if (d2 > dist)
-			return support_point_hillclimb(dir, tw->m_next);
-	}
-	return m_vertices[best->get_end()];
+		float d_it = glm::dot(m_vertices[it->m_twin->get_end()], dir);
+		if (d_it > dist)
+			dist = d_it, best = it->m_twin;
+		it = it->m_twin->m_prev;
+	} while (it != start);
+	if (start != best)
+		return support_point_hillclimb(dir, best);
+	else
+		return m_vertices[best->get_end()];
 }

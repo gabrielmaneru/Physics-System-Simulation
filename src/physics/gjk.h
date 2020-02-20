@@ -36,11 +36,12 @@ struct gjk
 		e_Running,
 		e_Success,
 		e_Failed
-	} m_status;
+	} m_status{ e_Running };
 	uint m_iterations{ 0u };
 	glm::vec3 m_dir{ 0.0f };
 	simplex m_simplex;
 	float m_angle{ 0.0f };
+	glm::vec3 m_prev[4];
 
 	const static float c_min_distance;
 	const static uint c_max_iterations;

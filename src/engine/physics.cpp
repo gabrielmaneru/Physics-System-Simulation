@@ -47,11 +47,11 @@ bool c_physics::collision_narrow(const physical_mesh & m1,
 	drawer.add_debugline_cube(glm::vec3(0.0f), 0.1f, white);
 
 	// Simplex
-	for (uint i = 0; i < solver.m_simplex.m_dim; ++i)
+	for (uint i = 0; i < 4; ++i)
 	{
-		drawer.add_debugline_cube(solver.m_simplex.m_points[i], 0.2f, blue);
-		for (uint j = i+1; j < solver.m_simplex.m_dim; ++j)
-			drawer.add_debugline(solver.m_simplex.m_points[i], solver.m_simplex.m_points[j], red);
+		drawer.add_debugline_cube(solver.m_prev[i], 0.2f, blue);
+		for (uint j = i+1; j < 4; ++j)
+			drawer.add_debugline(solver.m_prev[i], solver.m_prev[j], red);
 	}
 	
 	// Minkowski
