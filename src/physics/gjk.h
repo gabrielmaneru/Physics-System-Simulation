@@ -12,9 +12,11 @@ struct simplex
 struct gjk
 {
 	gjk(const physical_mesh& A, const physical_mesh& B, const glm::mat4& modA, const glm::mat4& modB);
-	bool evaluate(glm::vec3 initial_dir);
+	void evaluate(glm::vec3 initial_dir);
 	glm::vec3 support(glm::vec3 dir)const;
+	bool close_simplex();
 	void add_vertex(simplex& simp, glm::vec3 dir)const;
+	void rem_vertex(simplex& simp)const;
 	float project_origin_2D(
 		glm::vec3 a, glm::vec3 b,
 		glm::vec4& bary, uint& voronoi_mask)const;
@@ -40,7 +42,6 @@ struct gjk
 	uint m_iterations{ 0u };
 	glm::vec3 m_dir{ 0.0f };
 	simplex m_simplex;
-	float m_angle{ 0.0f };
 	glm::vec3 m_prev[4];
 
 	const static float c_min_distance;

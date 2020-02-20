@@ -8,6 +8,7 @@
 #include "physics.h"
 #include "drawer.h"
 #include <physics/gjk.h>
+#include <physics/epa.h>
 
 /**
  * Perform ray instersection with the world
@@ -40,26 +41,47 @@ bool c_physics::collision_narrow(const physical_mesh & m1,
 	const body & b1,
 	const body & b2) const
 {
+	glm::vec3 first_dir = glm::normalize(b2.m_position - b1.m_position);
+	// Solve using GJK Algorithm
 	gjk solver(m1, m2, b1.get_model(), b2.get_model());
-	bool gjk_status = solver.evaluate(b2.m_position - b1.m_position);
-	
-	// Origin
-	drawer.add_debugline_cube(glm::vec3(0.0f), 0.1f, white);
+	solver.evaluate(first_dir);
 
-	// Simplex
-	for (uint i = 0; i < 4; ++i)
+	// If Solver success -> Origin is encloseed by simplex
+	if (solver.m_status == gjk::e_Success)
 	{
-		drawer.add_debugline_cube(solver.m_prev[i], 0.2f, blue);
-		for (uint j = i+1; j < 4; ++j)
-			drawer.add_debugline(solver.m_prev[i], solver.m_prev[j], red);
-	}
-	
-	// Minkowski
-	for (auto v1 : m1.m_vertices)
-		for (auto v2 : m2.m_vertices)
-			drawer.add_debugline_cube(tr_point(b1.get_model(), v1) - tr_point(b2.get_model(), v2), 0.1f, black);
+		// Extract witness points
+		glm::vec3 wit0{ 0.f };
+		glm::vec3 wit1{ 0.f };
+		for (uint i = 0; i < solver.m_simplex.m_dim; ++i)
+		{
+			float b = solver.m_simplex.m_bary[i];
+			wit0 += m2.support(solver.m_simplex.m_dirs[i]) * b;
+			wit1 += m1.support(solver.m_simplex.m_dirs[i]) * b;
+		}
+		// move wit0 into A-Space
+		wit0 = tr_vector(solver.m_invmod_A * solver.m_mod_B, wit0);
 
-	return gjk_status;
+		// Origin
+		drawer.add_debugline_cube(glm::vec3(0.0f), 0.1f, white);
+
+		// Simplex
+		const simplex& s = solver.m_simplex;
+		for (uint i = 0; i < s.m_dim; ++i)
+		{
+			drawer.add_debugline_cube(s.m_points[i], 0.2f, blue);
+			drawer.add_debugline(s.m_points[i], s.m_points[i] + s.m_dirs[i], magenta);
+			for (uint j = i + 1; j < s.m_dim; ++j)
+				drawer.add_debugline(s.m_points[i], s.m_points[j], red);
+		}
+		epa solver2;
+		solver2.evaluate(solver, -first_dir);
+		if (solver2.m_status == epa::e_Success)
+		{
+
+			return true;
+		}
+	}
+	return false;
 }
 
 /**

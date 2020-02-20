@@ -48,13 +48,13 @@ void c_editor::ImGui_Shutdown()const
 void c_editor::create_scene() const
 {
 	physics.add_body("cube.obj")
-		.set_position({ 0.0f, 0.0f, 0.0f })
+		.set_position({ 1.0f, 0.0f, 0.0f })
 		.set_inertia({ 1.f / 6.f, 0.f, 0.f,
 					   0.f, 1.f / 6.f, 0.f,
 					   0.f, 0.f, 1.f / 6.f });
 
 	physics.add_body("sphere.obj")
-		.set_position({ 3.0f, 0.0f, 0.0f })
+		.set_position({ 2.6f, 0.0f, 0.0f })
 		.set_inertia({ 2.f / 5.f, 0.f, 0.f,
 					   0.f, 2.f / 5.f, 0.f,
 					   0.f, 0.f, 2.f / 5.f });

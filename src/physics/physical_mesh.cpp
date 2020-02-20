@@ -322,6 +322,10 @@ ray_info physical_mesh::ray_cast(const ray & local_ray)const
 	}
 	return info;
 }
+ glm::vec3 physical_mesh::support(glm::vec3 dir) const
+ {
+	return support_point_hillclimb(dir);
+ }
 /**
 * Computes the support point using a bruteforce approach
 **/
