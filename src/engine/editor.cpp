@@ -48,46 +48,24 @@ void c_editor::ImGui_Shutdown()const
 void c_editor::create_scene() const
 {
 	physics.add_body("cube.obj")
-		.set_position({ 1.0f, 0.0f, 0.0f })
+		.set_position({ -2.5f, 0.0f, -5.0f })
 		.set_inertia({ 1.f / 6.f, 0.f, 0.f,
 					   0.f, 1.f / 6.f, 0.f,
 					   0.f, 0.f, 1.f / 6.f });
-
 	physics.add_body("sphere.obj")
-		.set_position({ 2.6f, 0.0f, 0.0f })
+		.set_position({ 0.0f, 0.0f, -2.5f })
 		.set_inertia({ 2.f / 5.f, 0.f, 0.f,
 					   0.f, 2.f / 5.f, 0.f,
 					   0.f, 0.f, 2.f / 5.f });
-
-	/*physics.add_body("cylinder.obj")
-		.set_position({ 0.0f, 0.0f, 3.0f })
+	physics.add_body("cylinder.obj")
+		.set_position({ 0.0f, 0.0f, -5.0f })
 		.set_inertia({ 1.f / 2.f, 0.f, 0.f,
 					   0.f, 1.f / 4.f, 0.f,
 					   0.f, 0.f, 1.f / 2.f });
-
-	physics.add_body("gourd.obj")
-		.set_position({ 3.0f, 0.0f, 3.0f });
-
 	physics.add_body("icosahedron.obj")
-		.set_position({ 6.0f, 0.0f, 3.0f });
-
+		.set_position({ 0.0f, 0.0f, -7.5f });
 	physics.add_body("octohedron.obj")
-		.set_position({ 3.0f, 0.0f, 6.0f });
-
-	physics.add_body("quad.obj")
-		.set_position({ 6.0f, 0.0f, 6.0f })
-		.set_inertia({ 1.f / 2.f, 0.f, 0.f,
-					   0.f, 1.f / 2.f, 0.f,
-					   0.f, 0.f, 1.f / 4.f });
-
-	physics.add_body("triangle.obj")
-		.set_position({ 9.0f, 0.0f, 6.0f })
-		.set_inertia({ 1.f / 2.f, 0.f, 0.f,
-					   0.f, 1.f / 2.f, 0.f,
-					   0.f, 0.f, 1.f / 4.f });
-
-	physics.add_body("bunny.obj")
-		.set_position({ 6.0f, 0.0f, 9.0f });*/
+		.set_position({ 2.5f, 0.0f, -5.0f });
 }
 
 void c_editor::reset_scene()
@@ -103,6 +81,20 @@ void c_editor::reset_scene()
 **/
 void c_editor::draw_debug_bodies()const
 {
+	float size = 20.0f;
+	drawer.add_debugline_cube(glm::vec3(0.0f), 0.1f, white*.5f);
+	drawer.add_debugline(glm::vec3(-size, 0.f, 0.f), glm::vec3(size, 0.f, 0.f), white*.5f);
+	drawer.add_debugline(glm::vec3(0.f, 0.f, -size), glm::vec3(0.f, 0.f, size), white*.5f);
+	for (float x = 1.0f; x <= size; x++)
+	{
+		drawer.add_debugline(glm::vec3(-x, 0.f, -size), glm::vec3(-x, 0.f, size), red*.5f);
+		drawer.add_debugline(glm::vec3( x, 0.f, -size), glm::vec3( x, 0.f, size), red*.5f);
+
+		drawer.add_debugline(glm::vec3(-size, 0.f, -x), glm::vec3(size, 0.f, -x), blue*.5f);
+		drawer.add_debugline(glm::vec3(-size, 0.f,  x), glm::vec3(size, 0.f,  x), blue*.5f);
+	}
+
+
 	for (uint i = 0; i < physics.m_bodies.size(); i++)
 	{
 		const physical_mesh& mesh = physics.m_meshes[i];
@@ -142,20 +134,6 @@ void c_editor::object_picking()
 		drawer.add_debugline(info.m_pi, b.m_position, yellow);
 		drawer.add_debugline(info.m_pi, info.m_pi + 0.1f*info.m_normal, magenta);
 		drawer.add_debugline_cube(mouse_ray.m_start, 0.0001f, white);
-		{
-			glm::mat4 m = b.get_model();
-			glm::mat4 inv_m = glm::inverse(m);
-			glm::vec3 dir = glm::normalize(tr_vector(inv_m, info.m_pi - b.m_position));
-
-			glm::vec3 sp1 = physics.m_meshes[info.m_body].support_point_bruteforce(dir);
-			glm::vec3 sp2 = physics.m_meshes[info.m_body].support_point_hillclimb(dir);
-
-			sp1 = tr_point(m, sp1);
-			sp2 = tr_point(m, sp2);
-
-			drawer.add_debugline_cube(sp1, 0.08f, green);
-			drawer.add_debugline_cube(sp2, 0.06f, red);
-		}
 		m_hovered = static_cast<int>(info.m_body);
 
 		if (input.m_mouse_triggered[0])
@@ -208,10 +186,13 @@ void c_editor::drawGui()const
 		if (ImGui::Begin("Body", nullptr))
 		{
 			static ImGuizmo::OPERATION m_operation{ ImGuizmo::TRANSLATE };
-			if (input.is_key_triggered(GLFW_KEY_1))
-				m_operation = ImGuizmo::TRANSLATE;
-			if (input.is_key_triggered(GLFW_KEY_2))
-				m_operation = ImGuizmo::ROTATE;
+			if (!ImGui::IsWindowHovered(ImGuiHoveredFlags_AnyWindow | ImGuiHoveredFlags_AllowWhenBlockedByActiveItem))
+			{
+				if (input.is_key_triggered(GLFW_KEY_1))
+					m_operation = ImGuizmo::TRANSLATE;
+				if (input.is_key_triggered(GLFW_KEY_2))
+					m_operation = ImGuizmo::ROTATE;
+			}
 
 			glm::mat4 model = b.get_model();
 			ImGuizmo::SetRect(0, 0, (float)window.m_width, (float)window.m_height);

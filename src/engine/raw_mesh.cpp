@@ -75,16 +75,27 @@ raw_mesh::raw_mesh(const std::string & path)
 		}
 	}
 	file.close();
-	fix_centroid();
+	fix_mesh();
 }
+void raw_mesh::fix_mesh()
+{
+	glm::vec3 min{ m_vertices[0] };
+	glm::vec3 max{ m_vertices[0] };
+	for(uint i = 1; i < m_vertices.size(); ++i)
+		for (uint j = 0; j < 3; ++j)
+		{
+			float f = m_vertices[i][j];
+			if (f < min[j])
+				min[j] = f;
+			else if (f > max[j])
+				max[j] = f;
+		}
+	glm::vec3 c = (max + min) * .5f;
+	min -= c;
+	max -= c;
+	glm::vec3 scl = max - min;
+	float max_scl = glm::max(scl.x, scl.z);
 
- void raw_mesh::fix_centroid()
- {
-	 glm::vec3 centroid{ 0.0f };
-	 for (auto v : m_vertices)
-		 centroid += v;
-	 centroid /= static_cast<float>(m_vertices.size());
-
-	 for (auto& v : m_vertices)
-		 v -= centroid;
- }
+	for (auto& v : m_vertices)
+		v = (v - c) / max_scl;
+}

@@ -7,15 +7,14 @@
 **/
 #include "drawer.h"
 #include "shader_program.h"
+#include <Windows.h>
+extern "C" { // Enable High performance GPU
+	_declspec(dllexport) DWORD NvOptimusEnablement = 0x00000001; }
+//#undef APIENTRY
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <iostream>
-#include <Windows.h>
 
-// Enable High performance GPU
-extern "C" {
-	_declspec(dllexport) DWORD NvOptimusEnablement = 0x00000001;
-}
 
 bool c_drawer::initialize()
 {

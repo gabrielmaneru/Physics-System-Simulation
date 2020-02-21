@@ -2,30 +2,46 @@
 #include "physical_mesh.h"
 #include <array>
 
+namespace voronoi
+{
+	constexpr uint flag[]{ 1<<0, 1<<1, 1<<2, 1<<3};
+	const uint seg_region = flag[0] | flag[1];
+	const uint face_region = flag[0] | flag[1] | flag[2];
+	const uint tetra_region = flag[0] | flag[1]| flag[2] | flag[3];
+}
+
 struct simplex
 {
+	simplex() = default;
+	simplex(glm::vec3 a, glm::vec3 b);
+	simplex(glm::vec3 a, glm::vec3 b, glm::vec3 c);
+	simplex(glm::vec3 a, glm::vec3 b, glm::vec3 c, glm::vec3 d);
+	float project_origin();
+	const glm::vec3& last()const;
+	simplex get_next(float& distance, glm::vec3& next_dir);
+
+	uint m_dim{ 0u };
 	std::array<glm::vec3, 4> m_points;
 	std::array<glm::vec3, 4> m_dirs;
 	glm::vec4 m_bary{ 0.0f };
-	uint m_dim{ 0u };
+	uint m_voronoi{ 0u };
 };
 struct gjk
 {
+	enum status {
+		e_Running,
+		e_Success,
+		e_Fail_NoFurthestPoint,
+		e_Fail_ProjectionFail,
+		e_Fail_IterationLimit
+	};
+
 	gjk(const physical_mesh& A, const physical_mesh& B, const glm::mat4& modA, const glm::mat4& modB);
-	void evaluate(glm::vec3 initial_dir);
+	status evaluate(glm::vec3 initial_dir);
 	glm::vec3 support(glm::vec3 dir)const;
-	bool close_simplex();
 	void add_vertex(simplex& simp, glm::vec3 dir)const;
 	void rem_vertex(simplex& simp)const;
-	float project_origin_2D(
-		glm::vec3 a, glm::vec3 b,
-		glm::vec4& bary, uint& voronoi_mask)const;
-	float project_origin_3D(
-		glm::vec3 a, glm::vec3 b, glm::vec3 c,
-		glm::vec4& bary, uint& voronoi_mask)const;
-	float project_origin_4D(
-		glm::vec3 a, glm::vec3 b, glm::vec3 c, glm::vec3 d,
-		glm::vec4& bary, uint& voronoi_mask)const;
+	bool enclose_simplex();
 	
 	const physical_mesh& m_mesh_A;
 	const physical_mesh& m_mesh_B;
@@ -34,11 +50,7 @@ struct gjk
 	const glm::mat4 m_invmod_A;
 	const glm::mat4 m_invmod_B;
 
-	enum status{
-		e_Running,
-		e_Success,
-		e_Failed
-	} m_status{ e_Running };
+	status m_status{ e_Running };
 	uint m_iterations{ 0u };
 	glm::vec3 m_dir{ 0.0f };
 	simplex m_simplex;
@@ -46,5 +58,4 @@ struct gjk
 
 	const static float c_min_distance;
 	const static uint c_max_iterations;
-	const static uint voronoi_flag[4];
 };

@@ -60,10 +60,7 @@ bool c_physics::collision_narrow(const physical_mesh & m1,
 		}
 		// move wit0 into A-Space
 		wit0 = tr_vector(solver.m_invmod_A * solver.m_mod_B, wit0);
-
-		// Origin
-		drawer.add_debugline_cube(glm::vec3(0.0f), 0.1f, white);
-
+		
 		// Simplex
 		const simplex& s = solver.m_simplex;
 		for (uint i = 0; i < s.m_dim; ++i)
@@ -73,6 +70,11 @@ bool c_physics::collision_narrow(const physical_mesh & m1,
 			for (uint j = i + 1; j < s.m_dim; ++j)
 				drawer.add_debugline(s.m_points[i], s.m_points[j], red);
 		}
+
+		for (auto v1 : m1.m_vertices)
+			for (auto v2 : m2.m_vertices)
+				drawer.add_debugline_cube(tr_point(solver.m_mod_A, v1) - tr_point(solver.m_mod_B, v2), 0.1f, black);
+
 		epa solver2;
 		solver2.evaluate(solver, -first_dir);
 		if (solver2.m_status == epa::e_Success)

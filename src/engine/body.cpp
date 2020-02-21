@@ -10,11 +10,7 @@
 void body::integrate(float dt)
 {
 	if (m_freeze)
-	{
-		m_forces_accumulation = glm::vec3{ 0.0f };
-		m_torques_accumulation = glm::vec3{ 0.0f };
 		return;
-	}
 
 	// Add Forces to Linear Momentum
 	m_linear_momentum += m_forces_accumulation;
@@ -63,6 +59,7 @@ body & body::set_inertia(glm::mat3 i)
 body & body::set_freeze(bool freeze)
 {
 	m_freeze = freeze;
+	stop();
 	return *this;
 }
 void body::stop()
