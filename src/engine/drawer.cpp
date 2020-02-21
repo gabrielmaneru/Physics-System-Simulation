@@ -29,6 +29,7 @@ bool c_drawer::initialize()
 	catch (const std::string & log) { std::cout << log; }
 	glEnable(GL_LINE_SMOOTH);
 	glEnable(GL_BLEND);
+	glEnable(GL_CULL_FACE); //glEnable(GL_DEPTH_TEST);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	return true;
 }
@@ -37,9 +38,34 @@ void c_drawer::render()
 {
 	m_camera.update();
 	glClearColor(0.1f, 0.1f, 0.1f, 1);
-	glClear(GL_COLOR_BUFFER_BIT);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glm::mat4 vp = m_camera.get_vp();
 
+	if (!m_debug_tri.empty())
+	{
+		if (m_tri.m_vao == 0)
+			glGenVertexArrays(1, &m_tri.m_vao);
+		glBindVertexArray(m_tri.m_vao);
+
+		if (m_tri.m_vbo == 0)
+			glGenBuffers(1, &m_tri.m_vbo);
+		glBindBuffer(GL_ARRAY_BUFFER, m_tri.m_vbo);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(debug_vertex)*m_debug_tri.size(), m_debug_tri.data(), GL_DYNAMIC_DRAW);
+
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+		glEnableVertexAttribArray(0);
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+		glEnableVertexAttribArray(1);
+
+		m_debug_shader->use();
+		m_debug_shader->set_uniform("vp", vp);
+		m_debug_shader->set_uniform("alpha", 0.5f);
+		glDrawArrays(GL_TRIANGLES, 0, (GLsizei)m_debug_tri.size());
+
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		glBindVertexArray(0);
+		m_debug_tri.clear();
+	}
 	if (!m_debug_lines.empty())
 	{
 		if (m_line.m_vao == 0)
@@ -66,31 +92,6 @@ void c_drawer::render()
 		m_debug_lines.clear();
 	}
 
-	if (!m_debug_tri.empty())
-	{
-		if (m_tri.m_vao == 0)
-			glGenVertexArrays(1, &m_tri.m_vao);
-		glBindVertexArray(m_tri.m_vao);
-
-		if (m_tri.m_vbo == 0)
-			glGenBuffers(1, &m_tri.m_vbo);
-		glBindBuffer(GL_ARRAY_BUFFER, m_tri.m_vbo);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(debug_vertex)*m_debug_tri.size(), m_debug_tri.data(), GL_DYNAMIC_DRAW);
-
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
-		glEnableVertexAttribArray(0);
-		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
-		glEnableVertexAttribArray(1);
-
-		m_debug_shader->use();
-		m_debug_shader->set_uniform("vp", vp);
-		m_debug_shader->set_uniform("alpha", 0.1f);
-		glDrawArrays(GL_TRIANGLES, 0, (GLsizei)m_debug_tri.size());
-
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
-		glBindVertexArray(0);
-		m_debug_tri.clear();
-	}
 }
 
 void c_drawer::shutdown()

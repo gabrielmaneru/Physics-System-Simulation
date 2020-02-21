@@ -15,10 +15,10 @@ struct camera
 	float m_fov{ 65.0f };
 	float m_near{ .001f };
 	float m_far{ 100.0f };
-	float m_yaw{ -90.0f };
-	float m_pitch{ 0.0f };
+	float m_yaw{ -120.0f };
+	float m_pitch{ -30.0f };
 
-	glm::vec3 m_eye{0,0,1};
+	glm::vec3 m_eye{2,2,-1};
 	glm::vec3 m_front;
 	glm::vec3 m_up;
 	glm::vec3 m_right;

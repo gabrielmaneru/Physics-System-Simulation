@@ -41,7 +41,7 @@ struct gjk
 	glm::vec3 support(glm::vec3 dir)const;
 	void add_vertex(simplex& simp, glm::vec3 dir)const;
 	void rem_vertex(simplex& simp)const;
-	bool enclose_simplex();
+	bool complete_simplex();
 	
 	const physical_mesh& m_mesh_A;
 	const physical_mesh& m_mesh_B;

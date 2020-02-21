@@ -41,47 +41,44 @@ bool c_physics::collision_narrow(const physical_mesh & m1,
 	const body & b1,
 	const body & b2) const
 {
-	glm::vec3 first_dir = glm::normalize(b2.m_position - b1.m_position);
+	glm::vec3 init_dir = glm::normalize(b2.m_position - b1.m_position);
+
 	// Solve using GJK Algorithm
-	gjk solver(m1, m2, b1.get_model(), b2.get_model());
-	solver.evaluate(first_dir);
+	gjk gjk_solver(m1, m2, b1.get_model(), b2.get_model());
+	gjk_solver.evaluate(-init_dir);
 
 	// If Solver success -> Origin is encloseed by simplex
-	if (solver.m_status == gjk::e_Success)
+	if (gjk_solver.m_status == gjk::e_Success)
 	{
-		// Extract witness points
-		glm::vec3 wit0{ 0.f };
-		glm::vec3 wit1{ 0.f };
-		for (uint i = 0; i < solver.m_simplex.m_dim; ++i)
-		{
-			float b = solver.m_simplex.m_bary[i];
-			wit0 += m2.support(solver.m_simplex.m_dirs[i]) * b;
-			wit1 += m1.support(solver.m_simplex.m_dirs[i]) * b;
-		}
-		// move wit0 into A-Space
-		wit0 = tr_vector(solver.m_invmod_A * solver.m_mod_B, wit0);
+		// minkow
+		//for (auto v1 : m1.m_vertices)
+		//	for (auto v2 : m2.m_vertices)
+		//		drawer.add_debugline_cube(tr_point(gjk_solver.m_mod_A, v1) - tr_point(gjk_solver.m_mod_B, v2), 0.1f, black);
 		
-		// Simplex
-		const simplex& s = solver.m_simplex;
-		for (uint i = 0; i < s.m_dim; ++i)
-		{
-			drawer.add_debugline_cube(s.m_points[i], 0.2f, blue);
-			drawer.add_debugline(s.m_points[i], s.m_points[i] + s.m_dirs[i], magenta);
-			for (uint j = i + 1; j < s.m_dim; ++j)
-				drawer.add_debugline(s.m_points[i], s.m_points[j], red);
-		}
+		epa epa_solver;
+		epa_solver.evaluate(gjk_solver, -init_dir);
+		drawer.add_debugtri_list(epa_solver.m_start.get_triangles(), red*3.0f);
 
-		for (auto v1 : m1.m_vertices)
-			for (auto v2 : m2.m_vertices)
-				drawer.add_debugline_cube(tr_point(solver.m_mod_A, v1) - tr_point(solver.m_mod_B, v2), 0.1f, black);
-
-		epa solver2;
-		solver2.evaluate(solver, -first_dir);
-		if (solver2.m_status == epa::e_Success)
+		if (epa_solver.m_status == epa::e_Success)
 		{
+			drawer.add_debugline_list(epa_solver.m_polytope.get_lines(), green);
+			drawer.add_debugtri_list(epa_solver.m_polytope.get_triangles(), blue*3.0f);
+
+			glm::vec3 w{ 0.f };
+			for (uint i = 0; i < 3; ++i)
+				w += gjk_solver.support(epa_solver.m_result.m_dirs[i])*epa_solver.m_result.m_bary[i];
+
+			drawer.add_debugline_cube(w, 0.1f, green);
+			drawer.add_debugline(w, glm::vec3{ 0.0f }, green*3.0f);
 
 			return true;
 		}
+		else
+		{
+			drawer.add_debugline_list(epa_solver.m_polytope.get_lines(), red);
+			drawer.add_debugtri_list(epa_solver.m_polytope.get_triangles(), blue*3.0f);
+		}
+
 	}
 	return false;
 }

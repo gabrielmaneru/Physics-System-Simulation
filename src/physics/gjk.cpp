@@ -330,7 +330,7 @@ void gjk::rem_vertex(simplex & simp) const
 {
 	--simp.m_dim;
 }
-bool gjk::enclose_simplex()
+bool gjk::complete_simplex()
 {
 	glm::vec3 axis[]{
 		glm::vec3{1,0,0},
@@ -343,12 +343,12 @@ bool gjk::enclose_simplex()
 		for (uint i = 0; i < 3; i++)
 		{
 			add_vertex(m_simplex, axis[i]);
-			if (enclose_simplex())
+			if (complete_simplex())
 				return true;
 			rem_vertex(m_simplex);
 
 			add_vertex(m_simplex, -axis[i]);
-			if (enclose_simplex())
+			if (complete_simplex())
 				return true;
 			rem_vertex(m_simplex);
 		}
@@ -364,12 +364,12 @@ bool gjk::enclose_simplex()
 				continue;
 
 			add_vertex(m_simplex, p);
-			if (enclose_simplex())
+			if (complete_simplex())
 				return true;
 			rem_vertex(m_simplex);
 
 			add_vertex(m_simplex, -p);
-			if (enclose_simplex())
+			if (complete_simplex())
 				return true;
 			rem_vertex(m_simplex);
 		}
@@ -384,12 +384,12 @@ bool gjk::enclose_simplex()
 		if (glm::length2(norm) > c_epsilon)
 		{
 			add_vertex(m_simplex, norm);
-			if (enclose_simplex())
+			if (complete_simplex())
 				return true;
 			rem_vertex(m_simplex);
 
 			add_vertex(m_simplex, -norm);
-			if (enclose_simplex())
+			if (complete_simplex())
 				return true;
 			rem_vertex(m_simplex);
 		}

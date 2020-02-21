@@ -48,7 +48,7 @@ void c_editor::ImGui_Shutdown()const
 void c_editor::create_scene() const
 {
 	physics.add_body("cube.obj")
-		.set_position({ -2.5f, 0.0f, -5.0f })
+		.set_position({ 0.0f, 0.0f, -3.25f })
 		.set_inertia({ 1.f / 6.f, 0.f, 0.f,
 					   0.f, 1.f / 6.f, 0.f,
 					   0.f, 0.f, 1.f / 6.f });

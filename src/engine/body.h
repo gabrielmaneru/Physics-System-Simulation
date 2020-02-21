@@ -18,7 +18,9 @@ struct body
 	body& set_inertia(glm::mat3 i);
 	body& set_freeze(bool freeze);
 	void stop();
+
 	glm::mat4 get_model()const;
+	glm::mat4 get_basis()const;
 
 	glm::vec3 m_position;
 	glm::quat m_rotation;
