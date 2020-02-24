@@ -29,7 +29,8 @@ bool c_drawer::initialize()
 	catch (const std::string & log) { std::cout << log; }
 	glEnable(GL_LINE_SMOOTH);
 	glEnable(GL_BLEND);
-	glEnable(GL_CULL_FACE); //glEnable(GL_DEPTH_TEST);
+	glEnable(GL_CULL_FACE);
+	//glEnable(GL_DEPTH_TEST);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	return true;
 }
@@ -37,7 +38,7 @@ bool c_drawer::initialize()
 void c_drawer::render()
 {
 	m_camera.update();
-	glClearColor(0.1f, 0.1f, 0.1f, 1);
+	glClearColor(0.3f, 0.3f, 0.3f, 1.f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glm::mat4 vp = m_camera.get_vp();
 

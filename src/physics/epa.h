@@ -14,8 +14,9 @@ struct epa
 	status evaluate();
 	face* find_closer_face();
 	void expand(face*& f, glm::vec3 w); 
-	void expand_pyramid(face* f, uint w);
-	void expand_concave(face* a, face* b, uint w);
+	std::vector<face*> expand_pyramid(face* f, uint w);
+	void correct_concavity(face* a, face* b);
+	void clear_obsolete_polytope();
 	bool check_convexity(face* a, face* b)const;
 
 	gjk& solver;
@@ -23,9 +24,7 @@ struct epa
 	uint m_iterations{ 0u };
 	std::vector<glm::vec3> m_dirs;
 	physical_mesh m_polytope;
-	glm::vec3 m_normal;
-	float m_depth;
 	simplex m_result;
 
-	const static uint c_max_iterations;
+	static int c_max_iterations;
 };

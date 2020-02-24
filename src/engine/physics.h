@@ -11,6 +11,7 @@
 #include <physics/physical_mesh.h>
 #include <physics/ray.h>
 #include <map>
+#include <array>
 
 struct ray_info_detailed : public ray_info
 {
@@ -18,10 +19,17 @@ struct ray_info_detailed : public ray_info
 	uint m_body;
 };
 
+struct contact_info
+{
+	bool m_hit{ false };
+	std::array<glm::vec3, 6> m_points;
+	glm::vec3 m_bary;
+};
+
 class c_physics
 {
 	ray_info_detailed ray_cast(const ray&)const;
-	bool collision_narrow(const physical_mesh& m1,
+	contact_info collision_narrow(const physical_mesh& m1,
 		const physical_mesh& m2,
 		const body& b1,
 		const body& b2)const;
@@ -34,6 +42,12 @@ public:
 	void update();
 	void clean();
 	body& add_body(std::string file);
+
+	bool m_draw_minkowski{false};
+	bool m_draw_gjk_simplex{ false };
+	bool m_draw_epa_simplex{ false };
+	bool m_draw_epa_polytope{ true };
+	bool m_draw_epa_results{ true };
 
 	static c_physics& get_instance();
 	friend class c_editor;

@@ -14,6 +14,7 @@
 #include <imgui/imgui_impl_opengl3.h>
 #include <imgui/ImGuizmo.h>
 #include "window.h"
+#include <physics/epa.h>
 
 /**
  * ImGui system
@@ -82,18 +83,16 @@ void c_editor::reset_scene()
 void c_editor::draw_debug_bodies()const
 {
 	float size = 20.0f;
-	drawer.add_debugline_cube(glm::vec3(0.0f), 0.1f, white*.5f);
-	drawer.add_debugline(glm::vec3(-size, 0.f, 0.f), glm::vec3(size, 0.f, 0.f), white*.5f);
-	drawer.add_debugline(glm::vec3(0.f, 0.f, -size), glm::vec3(0.f, 0.f, size), white*.5f);
+	drawer.add_debugline_cube(glm::vec3(0.0f), 0.1f, white);
+	drawer.add_debugline(glm::vec3(-size, 0.f, 0.f), glm::vec3(size, 0.f, 0.f), white);
+	drawer.add_debugline(glm::vec3(0.f, 0.f, -size), glm::vec3(0.f, 0.f, size), white);
 	for (float x = 1.0f; x <= size; x++)
 	{
-		drawer.add_debugline(glm::vec3(-x, 0.f, -size), glm::vec3(-x, 0.f, size), red*.5f);
-		drawer.add_debugline(glm::vec3( x, 0.f, -size), glm::vec3( x, 0.f, size), red*.5f);
-
-		drawer.add_debugline(glm::vec3(-size, 0.f, -x), glm::vec3(size, 0.f, -x), blue*.5f);
-		drawer.add_debugline(glm::vec3(-size, 0.f,  x), glm::vec3(size, 0.f,  x), blue*.5f);
+		drawer.add_debugline(glm::vec3(-x, 0.f, -size), glm::vec3(-x, 0.f, size), red);
+		drawer.add_debugline(glm::vec3( x, 0.f, -size), glm::vec3( x, 0.f, size), red);
+		drawer.add_debugline(glm::vec3(-size, 0.f, -x), glm::vec3(size, 0.f, -x), blue);
+		drawer.add_debugline(glm::vec3(-size, 0.f,  x), glm::vec3(size, 0.f,  x), blue);
 	}
-
 
 	for (uint i = 0; i < physics.m_bodies.size(); i++)
 	{
@@ -108,7 +107,7 @@ void c_editor::draw_debug_bodies()const
 		for (auto& p : tri)
 			p = tr_point(m, p);
 
-		glm::vec3 color = ((uint)m_hovered == i) ? magenta : red;
+		glm::vec3 color = ((uint)m_hovered == i) ? magenta : black;
 		drawer.add_debugline_list(lines, color);
 		drawer.add_debugtri_list(tri, white);
 
@@ -131,7 +130,6 @@ void c_editor::object_picking()
 	if (info.m_intersected)
 	{
 		body& b = physics.m_bodies[info.m_body];
-		drawer.add_debugline(info.m_pi, b.m_position, yellow);
 		drawer.add_debugline(info.m_pi, info.m_pi + 0.1f*info.m_normal, magenta);
 		drawer.add_debugline_cube(mouse_ray.m_start, 0.0001f, white);
 		m_hovered = static_cast<int>(info.m_body);
@@ -239,6 +237,17 @@ void c_editor::drawGui()const
 			ImGui::InputFloat3("", &i[2].x);
 			ImGui::End();
 		}
+	}
+
+	if (ImGui::Begin("Physics", nullptr))
+	{
+		ImGui::Checkbox("Minkowski", &physics.m_draw_minkowski);
+		ImGui::Checkbox("GJK Simplex", &physics.m_draw_gjk_simplex);
+		ImGui::Checkbox("EPA Simplex", &physics.m_draw_epa_simplex);
+		ImGui::Checkbox("EPA Polytope", &physics.m_draw_epa_polytope);
+		ImGui::Checkbox("EPA Results", &physics.m_draw_epa_results);
+		ImGui::SliderInt("It", &epa::c_max_iterations, 0, 256);
+		ImGui::End();
 	}
 
 	ImGui::Render();

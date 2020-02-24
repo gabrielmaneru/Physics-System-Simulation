@@ -45,11 +45,11 @@ public:
 };
 #define drawer c_drawer::get_instance()
 
-const glm::vec3 red{ .5f, .0f, .0f };
-const glm::vec3 yellow{ .5f, .5f, .0f };
-const glm::vec3 green{ .0f, .5f, .0f };
-const glm::vec3 cyan{ .0f, .5f, .5f };
-const glm::vec3 blue{ .0f, .0f, .5f };
-const glm::vec3 magenta{ .5f, .0f, .5f };
-const glm::vec3 white{ .5f, .5f, .5f };
+const glm::vec3 red{ 1.f, .0f, .0f };
+const glm::vec3 yellow{ 1.f, 1.f, .0f };
+const glm::vec3 green{ .0f, 1.f, .0f };
+const glm::vec3 cyan{ .0f, 1.f, 1.f };
+const glm::vec3 blue{ .0f, .0f, 1.f };
+const glm::vec3 magenta{ 1.f, .0f, 1.f };
+const glm::vec3 white{ 1.f, 1.f, 1.f };
 const glm::vec3 black{ .0f, .0f, .0f };

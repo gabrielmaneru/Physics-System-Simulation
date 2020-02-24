@@ -36,19 +36,20 @@ struct gjk
 		e_Fail_IterationLimit
 	};
 
-	gjk(const physical_mesh& A, const physical_mesh& B, const glm::mat4& modA, const glm::mat4& modB);
+	gjk(const physical_mesh& A, const physical_mesh& B, const glm::mat4& modA, const glm::mat4& modB, const glm::mat3& basisA, const glm::mat3& basisB);
 	status evaluate(glm::vec3 initial_dir);
+	glm::vec3 supportA(glm::vec3 dir, const physical_mesh& target)const;
+	glm::vec3 supportB(glm::vec3 dir, const physical_mesh& target)const;
 	glm::vec3 support(glm::vec3 dir)const;
+	glm::vec3 support(glm::vec3 dir, uint index)const;
 	void add_vertex(simplex& simp, glm::vec3 dir)const;
 	void rem_vertex(simplex& simp)const;
 	bool complete_simplex();
 	
 	const physical_mesh& m_mesh_A;
 	const physical_mesh& m_mesh_B;
-	const glm::mat4 m_mod_A;
-	const glm::mat4 m_mod_B;
-	const glm::mat4 m_invmod_A;
-	const glm::mat4 m_invmod_B;
+	const glm::mat4 m_mod_to_A;
+	const glm::mat3 m_mod_to_B;
 
 	status m_status{ e_Running };
 	uint m_iterations{ 0u };

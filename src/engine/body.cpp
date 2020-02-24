@@ -72,11 +72,11 @@ void body::stop()
 }
 glm::mat4 body::get_model()const
 {
-	return glm::translate(glm::mat4(1.0f), m_position) * get_basis();
+	return glm::translate(glm::mat4(1.0f), m_position) * glm::mat4_cast(m_rotation); 
 }
 
-glm::mat4 body::get_basis() const
+glm::mat3 body::get_basis() const
 {
-	return glm::mat4_cast(m_rotation);
+	return glm::mat3_cast(m_rotation);
 }
 

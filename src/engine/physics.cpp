@@ -36,7 +36,7 @@ ray_info_detailed c_physics::ray_cast(const ray & world_ray)const
 	return info;
 }
 
-bool c_physics::collision_narrow(const physical_mesh & m1,
+contact_info c_physics::collision_narrow(const physical_mesh & m1,
 	const physical_mesh & m2,
 	const body & b1,
 	const body & b2) const
@@ -44,44 +44,71 @@ bool c_physics::collision_narrow(const physical_mesh & m1,
 	glm::vec3 init_dir = glm::normalize(b2.m_position - b1.m_position);
 
 	// Solve using GJK Algorithm
-	gjk gjk_solver(m1, m2, b1.get_model(), b2.get_model());
-	gjk_solver.evaluate(-init_dir);
+	gjk gjk_solver(m1, m2,
+		b1.get_model(), b2.get_model(),
+		b1.get_basis(), b2.get_basis());
+	gjk_solver.evaluate(init_dir);
 
 	// If Solver success -> Origin is encloseed by simplex
 	if (gjk_solver.m_status == gjk::e_Success)
 	{
 		// minkow
-		for (auto v1 : m1.m_vertices)
-			for (auto v2 : m2.m_vertices)
-				drawer.add_debugline_cube(tr_point(gjk_solver.m_mod_A, v1) - tr_point(gjk_solver.m_mod_B, v2), 0.1f, black);
-		
+		if(m_draw_minkowski)
+			for (auto v1 : m1.m_vertices)
+				for (auto v2 : m2.m_vertices)
+					drawer.add_debugline_cube(v1 - tr_point(gjk_solver.m_mod_to_A, v2), 0.1f, black);
+
+		if (m_draw_gjk_simplex)
+			for (uint i = 0; i < gjk_solver.m_simplex.m_dim; ++i)
+				for(uint j=0; j < gjk_solver.m_simplex.m_dim; ++j)
+					drawer.add_debugline(gjk_solver.m_simplex.m_points[i],
+						gjk_solver.m_simplex.m_points[j], white);
+
 		epa epa_solver{ gjk_solver };
-		drawer.add_debugtri_list(epa_solver.m_polytope.get_triangles(), blue);
-		drawer.add_debugline_list(epa_solver.m_polytope.get_lines(), blue);
+
+		if (m_draw_epa_simplex)
+		{
+			drawer.add_debugline_list(epa_solver.m_polytope.get_lines(), blue);
+			drawer.add_debugtri_list(epa_solver.m_polytope.get_triangles(), blue);
+		}
 
 		epa_solver.evaluate();
+
+		glm::vec3 color = epa_solver.m_status == epa::e_Success ? green : red;
+		if (m_draw_epa_polytope)
+		{
+			drawer.add_debugline_list(epa_solver.m_polytope.get_lines(), color);
+			drawer.add_debugtri_list(epa_solver.m_polytope.get_triangles(), color);
+			if(epa_solver.m_status == epa::e_Success)
+				drawer.add_debugtri_list({
+					epa_solver.m_result.m_points[0],
+					epa_solver.m_result.m_points[1],
+					epa_solver.m_result.m_points[2]
+					}, red);
+		}
 		if (epa_solver.m_status == epa::e_Success)
 		{
-			drawer.add_debugline_list(epa_solver.m_polytope.get_lines(), green);
-			drawer.add_debugtri_list(epa_solver.m_polytope.get_triangles(), green);
-
-			glm::vec3 w{ 0.f };
+			glm::vec3 p0{ 0.f }, p1{ 0.0f };
 			for (uint i = 0; i < 3; ++i)
-				w += gjk_solver.support(epa_solver.m_result.m_dirs[i])*epa_solver.m_result.m_bary[i];
+			{
+				p0 += gjk_solver.support(epa_solver.m_result.m_dirs[i], 0)
+					* epa_solver.m_result.m_bary[i];
+				p1 += gjk_solver.support(-epa_solver.m_result.m_dirs[i], 1)
+					* epa_solver.m_result.m_bary[i];
+			}
 
-			drawer.add_debugline_cube(w, 0.1f, green);
-			drawer.add_debugline(w, glm::vec3{ 0.0f }, green*3.0f);
-
-			return true;
+			contact_info result{ true };
+			result.m_points[0] = tr_point(b1.get_model(), gjk_solver.supportA(epa_solver.m_result.m_dirs[0], m1));
+			result.m_points[1] = tr_point(b1.get_model(), gjk_solver.supportA(epa_solver.m_result.m_dirs[1], m1));
+			result.m_points[2] = tr_point(b1.get_model(), gjk_solver.supportA(epa_solver.m_result.m_dirs[2], m1));
+			result.m_points[3] = tr_point(b1.get_model(), gjk_solver.supportB(-epa_solver.m_result.m_dirs[0], m2));
+			result.m_points[4] = tr_point(b1.get_model(), gjk_solver.supportB(-epa_solver.m_result.m_dirs[1], m2));
+			result.m_points[5] = tr_point(b1.get_model(), gjk_solver.supportB(-epa_solver.m_result.m_dirs[2], m2));
+			result.m_bary = epa_solver.m_result.m_bary;
+			return result;
 		}
-		else
-		{
-			drawer.add_debugline_list(epa_solver.m_polytope.get_lines(), red);
-			drawer.add_debugtri_list(epa_solver.m_polytope.get_triangles(), red);
-		}
-
 	}
-	return false;
+	return {};
 }
 
 /**
@@ -97,7 +124,35 @@ void c_physics::update()
 		{
 			const body& b2 = m_bodies[j];
 			const physical_mesh& m2 = m_meshes[j];
-			collision_narrow(m1, m2, b1, b2);
+			contact_info result = collision_narrow(m1, m2, b1, b2);
+			if (result.m_hit)
+			{
+				drawer.add_debugline_cube(result.m_points[0], 0.1f, green);
+				drawer.add_debugline_cube(result.m_points[1], 0.1f, green);
+				drawer.add_debugline_cube(result.m_points[2], 0.1f, green);
+				drawer.add_debugline_cube(result.m_points[3], 0.1f, red);
+				drawer.add_debugline_cube(result.m_points[4], 0.1f, red);
+				drawer.add_debugline_cube(result.m_points[5], 0.1f, red);
+
+
+				glm::vec3 av0 = result.m_points[0] * result.m_bary[0]
+					+ result.m_points[1] * result.m_bary[1]
+					+ result.m_points[2] * result.m_bary[2];
+				drawer.add_debugline(result.m_points[0], av0, black);
+				drawer.add_debugline(result.m_points[1], av0, black);
+				drawer.add_debugline(result.m_points[2], av0, black);
+				drawer.add_debugline_cube(av0, 0.1f, green);
+
+				glm::vec3 av1 = result.m_points[3] * result.m_bary[0]
+					+ result.m_points[4] * result.m_bary[1]
+					+ result.m_points[5] * result.m_bary[2];
+				drawer.add_debugline(result.m_points[3], av1, black);
+				drawer.add_debugline(result.m_points[4], av1, black);
+				drawer.add_debugline(result.m_points[5], av1, black);
+				drawer.add_debugline_cube(av1, 0.1f, red);
+
+				drawer.add_debugline(av0, av1, yellow);
+			}
 		}
 	}
 	for (auto& b : m_bodies)

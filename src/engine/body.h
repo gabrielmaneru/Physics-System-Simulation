@@ -20,7 +20,7 @@ struct body
 	void stop();
 
 	glm::mat4 get_model()const;
-	glm::mat4 get_basis()const;
+	glm::mat3 get_basis()const;
 
 	glm::vec3 m_position;
 	glm::quat m_rotation;

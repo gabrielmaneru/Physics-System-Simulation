@@ -243,10 +243,11 @@ simplex simplex::get_next(float & distance, glm::vec3 & next_dir)
 
 const float gjk::c_min_distance = 1e-3f;
 const uint gjk::c_max_iterations = 64u;
-gjk::gjk(const physical_mesh & A, const physical_mesh & B, const glm::mat4 & modA, const glm::mat4 & modB)
-	:m_mesh_A(A), m_mesh_B(B),
-	m_mod_A(modA), m_mod_B(modB),
-	m_invmod_A(glm::inverse(modA)), m_invmod_B(glm::inverse(modB))
+
+gjk::gjk(const physical_mesh & A, const physical_mesh & B, const glm::mat4 & modA, const glm::mat4 & modB, const glm::mat3 & basisA, const glm::mat3 & basisB)
+	: m_mesh_A(A), m_mesh_B(B),
+	m_mod_to_A(glm::inverse(modA)*modB),
+	m_mod_to_B(glm::transpose(basisB) * basisA)
 {}
 gjk::status gjk::evaluate(glm::vec3 initial_dir)
 {
@@ -305,18 +306,29 @@ gjk::status gjk::evaluate(glm::vec3 initial_dir)
 			return m_status = e_Fail_IterationLimit;
 	}
 }
+glm::vec3 gjk::supportA(glm::vec3 dir, const physical_mesh & target) const
+{
+	return target.support(dir);
+}
+glm::vec3 gjk::supportB(glm::vec3 dir, const physical_mesh & target) const
+{
+	return tr_point(m_mod_to_A,target.support(m_mod_to_B * dir));
+}
 glm::vec3 gjk::support(glm::vec3 dir)const
 {
-	glm::vec3 dirA = tr_vector(m_invmod_A, dir);
-	glm::vec3 dirB = tr_vector(m_invmod_B, dir);
-
-	glm::vec3 localA = m_mesh_A.support_point_hillclimb(dirA);
-	glm::vec3 localB = m_mesh_B.support_point_hillclimb(-dirB);
-
-	glm::vec3 supA = tr_point(m_mod_A, localA);
-	glm::vec3 supB = tr_point(m_mod_B, localB);
-
-	return supA - supB;
+	return supportA(dir, m_mesh_A) - supportB(-dir, m_mesh_B);
+}
+glm::vec3 gjk::support(glm::vec3 dir, uint index) const
+{
+	switch (index)
+	{
+	case 0:
+		return supportA(dir, m_mesh_B);
+		break;
+	case 1:
+		return supportB(dir, m_mesh_A);
+		break;
+	}
 }
 void gjk::add_vertex(simplex & simp, glm::vec3 dir)const
 {

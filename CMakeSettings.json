@@ -1,7 +1,7 @@
 ﻿{
   "configurations": [
     {
-      "name": "Digi-Debug",
+      "name": "Debug",
       "generator": "Ninja",
       "configurationType": "Debug",
       "inheritEnvironments": [
@@ -14,7 +14,7 @@
       "ctestCommandArgs": ""
     },
     {
-      "name": "Digi-Release",
+      "name": "Release",
       "generator": "Ninja",
       "configurationType": "RelWithDebInfo",
       "inheritEnvironments": [
