@@ -51,18 +51,19 @@ bool c_physics::collision_narrow(const physical_mesh & m1,
 	if (gjk_solver.m_status == gjk::e_Success)
 	{
 		// minkow
-		//for (auto v1 : m1.m_vertices)
-		//	for (auto v2 : m2.m_vertices)
-		//		drawer.add_debugline_cube(tr_point(gjk_solver.m_mod_A, v1) - tr_point(gjk_solver.m_mod_B, v2), 0.1f, black);
+		for (auto v1 : m1.m_vertices)
+			for (auto v2 : m2.m_vertices)
+				drawer.add_debugline_cube(tr_point(gjk_solver.m_mod_A, v1) - tr_point(gjk_solver.m_mod_B, v2), 0.1f, black);
 		
-		epa epa_solver;
-		epa_solver.evaluate(gjk_solver, -init_dir);
-		drawer.add_debugtri_list(epa_solver.m_start.get_triangles(), red*3.0f);
+		epa epa_solver{ gjk_solver };
+		drawer.add_debugtri_list(epa_solver.m_polytope.get_triangles(), blue);
+		drawer.add_debugline_list(epa_solver.m_polytope.get_lines(), blue);
 
+		epa_solver.evaluate();
 		if (epa_solver.m_status == epa::e_Success)
 		{
 			drawer.add_debugline_list(epa_solver.m_polytope.get_lines(), green);
-			drawer.add_debugtri_list(epa_solver.m_polytope.get_triangles(), blue*3.0f);
+			drawer.add_debugtri_list(epa_solver.m_polytope.get_triangles(), green);
 
 			glm::vec3 w{ 0.f };
 			for (uint i = 0; i < 3; ++i)
@@ -76,7 +77,7 @@ bool c_physics::collision_narrow(const physical_mesh & m1,
 		else
 		{
 			drawer.add_debugline_list(epa_solver.m_polytope.get_lines(), red);
-			drawer.add_debugtri_list(epa_solver.m_polytope.get_triangles(), blue*3.0f);
+			drawer.add_debugtri_list(epa_solver.m_polytope.get_triangles(), red);
 		}
 
 	}

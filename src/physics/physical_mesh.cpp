@@ -24,12 +24,8 @@ void physical_mesh::add_face(const std::vector<uint>& indices)
 	// Assert minimum face is a triangle
 	assert(indices.size() >= 3);
 
-	// Create a face
-	m_faces.push_back({});
-	face* f = &m_faces.back();
-	f->m_indices = indices;
-
 	// Create all half edges
+	half_edge* start{ nullptr };
 	half_edge* last{ nullptr };
 	for (uint i = 0; i < indices.size(); i++)
 	{
@@ -38,7 +34,6 @@ void physical_mesh::add_face(const std::vector<uint>& indices)
 		half_edge * cur = &m_hedges.back();
 
 		// Initialize
-		cur->m_face = f;
 		cur->m_vertex_idx = indices[i];
 
 		// Set up double linked-list
@@ -48,15 +43,20 @@ void physical_mesh::add_face(const std::vector<uint>& indices)
 			last->m_next = cur;
 		}
 		else
-			f->m_hedge_start = cur;
+			start = cur;
 
 		cur->m_twin = nullptr;
 		last = cur;
 	}
 
 	// Finish cyclic linked-list
-	f->m_hedge_start->m_prev = last;
-	last->m_next = f->m_hedge_start;
+	start->m_prev = last;
+	last->m_next = start;
+
+	// Create a face
+	m_faces.push_back({this});
+	m_faces.back().m_hedge_start = start;
+	m_faces.back().refresh();
 }
 /**
  * Indentify the twin edges in the mesh
@@ -118,9 +118,7 @@ void physical_mesh::merge_coplanar()
 				// If the edge has a twin
 				if (edge1->m_twin != nullptr && is_coplanar(edge1))
 				{
-					// Create a face
-					m_faces.push_back({});
-					face& f = m_faces.back();
+					half_edge * new_start{ nullptr };
 
 					// If twin is prev to edge1
 					if (edge1->m_prev == edge1->m_twin)
@@ -128,8 +126,7 @@ void physical_mesh::merge_coplanar()
 						edge1->m_next->m_prev = edge1->m_twin->m_prev;
 						edge1->m_twin->m_prev->m_next = edge1->m_next;
 
-						f.m_hedge_start = edge1->m_next;
-						f.refresh();
+						new_start = edge1->m_next;
 					}
 
 					// If twin is next to edge1
@@ -138,8 +135,7 @@ void physical_mesh::merge_coplanar()
 						edge1->m_prev->m_next = edge1->m_twin->m_next;
 						edge1->m_twin->m_next->m_prev = edge1->m_prev;
 
-						f.m_hedge_start = edge1->m_prev;
-						f.refresh();
+						new_start = edge1->m_prev;
 					}
 
 					// Merge faces
@@ -154,12 +150,16 @@ void physical_mesh::merge_coplanar()
 						edge1->m_twin->m_prev->m_next = edge1->m_next;
 
 						// Reconnect the new face
-						f.m_hedge_start = edge1->m_prev;
-						f.refresh();
+						new_start = edge1->m_prev;
 
 						// Remove other face
 						edge1->m_twin->m_face->m_hedge_start = nullptr;
 					}
+
+					// Create a face
+					m_faces.push_back({this});
+					m_faces.back().m_hedge_start = new_start;
+					m_faces.back().refresh();
 
 					// Remove current face
 					it->m_hedge_start = nullptr;

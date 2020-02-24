@@ -10,16 +10,18 @@ struct epa
 		e_Fail_InvalidSimpler,
 		e_Fail_IterationLimit
 	};
-
-	status evaluate(gjk& solver, glm::vec3 initial_dir);
+	epa(gjk& solver);
+	status evaluate();
 	face* find_closer_face();
-	void expand(face* f, glm::vec3 w);
-	bool get_edge_dist(glm::vec3 n, uint a, uint b, float& dist)const;
-	float get_face_dist(face* f)const;
+	void expand(face*& f, glm::vec3 w); 
+	void expand_pyramid(face* f, uint w);
+	void expand_concave(face* a, face* b, uint w);
+	bool check_convexity(face* a, face* b)const;
 
+	gjk& solver;
 	status m_status{ e_Running };
 	uint m_iterations{ 0u };
-	physical_mesh m_start;
+	std::vector<glm::vec3> m_dirs;
 	physical_mesh m_polytope;
 	glm::vec3 m_normal;
 	float m_depth;

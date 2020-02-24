@@ -1,49 +1,54 @@
 #include "epa.h"
 
 const uint epa::c_max_iterations = 255u;
-epa::status epa::evaluate(gjk & solver, glm::vec3 initial_dir)
+epa::epa(gjk & asolver)
+	:solver(asolver)
 {
+	// Expand the simplex into tetrahedron
 	if (solver.m_simplex.m_dim <= 1 || !solver.complete_simplex())
-		return m_status = e_Fail_InvalidSimpler;
-
-	// Orient simplex
-	float v = glm::determinant(glm::mat3{
-		solver.m_simplex.m_points[0] - solver.m_simplex.m_points[3],
-		solver.m_simplex.m_points[0] - solver.m_simplex.m_points[3],
-		solver.m_simplex.m_points[0] - solver.m_simplex.m_points[3]
-	});
-	if (v < 0.0f)
+		m_status = e_Fail_InvalidSimpler;
+	else
 	{
-		std::swap(solver.m_simplex.m_points[0], solver.m_simplex.m_points[1]);
-		std::swap(solver.m_simplex.m_dirs[0], solver.m_simplex.m_dirs[1]);
-		std::swap(solver.m_simplex.m_bary[0], solver.m_simplex.m_bary[1]);
+		// Orient simplex
+		float v = glm::determinant(glm::mat3{
+			solver.m_simplex.m_points[0] - solver.m_simplex.m_points[3],
+			solver.m_simplex.m_points[0] - solver.m_simplex.m_points[3],
+			solver.m_simplex.m_points[0] - solver.m_simplex.m_points[3]
+			});
+
+		// Swap p0<->p1
+		if (v < 0.0f)
+		{
+			std::swap(solver.m_simplex.m_points[0], solver.m_simplex.m_points[1]);
+			std::swap(solver.m_simplex.m_dirs[0], solver.m_simplex.m_dirs[1]);
+			std::swap(solver.m_simplex.m_bary[0], solver.m_simplex.m_bary[1]);
+		}
+
+		// Create polytope
+		m_polytope.m_vertices = {
+			solver.m_simplex.m_points.begin(),
+			solver.m_simplex.m_points.end()
+		};
+		m_polytope.add_face({ 0u, 1u, 2u });
+		m_polytope.add_face({ 1u, 0u, 3u });
+		m_polytope.add_face({ 2u, 1u, 3u });
+		m_polytope.add_face({ 0u, 2u, 3u });
+		m_polytope.create_twins();
+
+		// Keep track of original directions
+		m_dirs = {
+		   solver.m_simplex.m_dirs.begin(),
+		   solver.m_simplex.m_dirs.end()
+		};
 	}
 
-	// Create polytope
-	m_polytope.m_vertices = { 
-		solver.m_simplex.m_points.begin(),
-		solver.m_simplex.m_points.end()
-	};
-	m_polytope.add_face({ 0u, 1u, 2u });
-	m_polytope.add_face({ 1u, 0u, 3u });
-	m_polytope.add_face({ 2u, 1u, 3u });
-	m_polytope.add_face({ 0u, 2u, 3u });
+}
 
-	m_start.m_vertices = {
-		solver.m_simplex.m_points.begin(),
-		solver.m_simplex.m_points.end()
-	};
-	m_start.add_face({ 0u, 1u, 2u });
-	m_start.add_face({ 1u, 0u, 3u });
-	m_start.add_face({ 2u, 1u, 3u });
-	m_start.add_face({ 0u, 2u, 3u });
-
-	// Keep track of original directions
-	std::vector<glm::vec3> dirs = {
-		solver.m_simplex.m_dirs.begin(),
-		solver.m_simplex.m_dirs.end()
-	};
-
+epa::status epa::evaluate()
+{
+	// Check if initialisation failed
+	if (m_status != e_Running)
+		return m_status;
 
 	// Find starting best face
 	face* closer = find_closer_face();
@@ -54,7 +59,7 @@ epa::status epa::evaluate(gjk & solver, glm::vec3 initial_dir)
 	{
 		glm::vec3 n = m_polytope.get_face_plane(closer->m_hedge_start);
 		glm::vec3 w = solver.support(n);
-		float wdist = glm::dot(n, w) - get_face_dist(closer);
+		float wdist = glm::dot(n, w) - closer->m_distance;
 
 		// Check accuracy limit
 		if (wdist < dist)
@@ -63,7 +68,7 @@ epa::status epa::evaluate(gjk & solver, glm::vec3 initial_dir)
 			break;
 
 		// Expand Face
-		dirs.push_back(n);
+		m_dirs.push_back(n);
 		expand(closer, w);
 
 		// Get newer face
@@ -74,17 +79,17 @@ epa::status epa::evaluate(gjk & solver, glm::vec3 initial_dir)
 			return m_status = e_Fail_IterationLimit;
 	}
 
-	m_normal = m_polytope.get_face_plane(closer->m_hedge_start);
-	m_depth = get_face_dist(closer);
+	m_normal = closer->m_plane;
+	m_depth = closer->m_distance;
 
 	m_result.m_dim = 3;
 	m_result.m_points[0] = m_polytope.m_vertices[closer->m_indices[0]];
 	m_result.m_points[1] = m_polytope.m_vertices[closer->m_indices[1]];
 	m_result.m_points[2] = m_polytope.m_vertices[closer->m_indices[2]];
 
-	m_result.m_dirs[0] = dirs[closer->m_indices[0]];
-	m_result.m_dirs[1] = dirs[closer->m_indices[1]];
-	m_result.m_dirs[2] = dirs[closer->m_indices[2]];
+	m_result.m_dirs[0] = m_dirs[closer->m_indices[0]];
+	m_result.m_dirs[1] = m_dirs[closer->m_indices[1]];
+	m_result.m_dirs[2] = m_dirs[closer->m_indices[2]];
 
 	glm::vec3 proj = m_normal * m_depth;
 	float b0 = glm::length(glm::cross(m_result.m_points[1] - proj, m_result.m_points[2] - proj));
@@ -105,85 +110,104 @@ face * epa::find_closer_face()
 	face * best{ nullptr };
 	for (auto& f : m_polytope.m_faces)
 	{
-		float d = get_face_dist(&f);
+		float d = f.m_distance;
 		if (dist < 0.0f || d < dist)
 			dist = d, best = &f;
 	}
 	return best;
 }
 
-void epa::expand(face * f, glm::vec3 w)
+void epa::expand(face *& f, glm::vec3 w)
+{
+	uint new_w = m_polytope.m_vertices.size();
+	m_polytope.m_vertices.push_back(w);
+
+	// Find if some face is breaking convexity
+	face* other_concave{ nullptr };
+	half_edge* edge = f->m_hedge_start;
+	do
+	{
+		if(edge->m_twin
+		&& check_convexity(f,edge->m_twin->m_face))
+			other_concave = edge->m_twin->m_face;
+
+		edge = edge->m_next;
+	} while (edge != f->m_hedge_start);
+
+	// Expand using other concave face
+	if (other_concave)
+	{
+		expand_concave(f, other_concave, new_w);
+		other_concave = nullptr;
+	}
+	// Expand as a pyramid
+	else
+		expand_pyramid(f, new_w);
+
+	// Remove obsolete edges
+	for (auto it = m_polytope.m_hedges.begin(); it != m_polytope.m_hedges.end();)
+		it = (it->m_prev == nullptr) ? m_polytope.m_hedges.erase(it) : it++;
+
+	// Remove obsolete faces
+	for (auto it = m_polytope.m_faces.begin(); it != m_polytope.m_faces.end();)
+		it = (it->m_hedge_start == nullptr) ? m_polytope.m_faces.erase(it) : it++;
+
+	// Avoid access to deleted items
+	f = nullptr;
+	m_polytope.create_twins();
+}
+
+void epa::expand_pyramid(face * f, uint w)
 {
 	std::vector<uint>v;
 	half_edge* edge = f->m_hedge_start;
 	do
 	{
+		// Add new pyramid vertex
 		v.push_back(edge->m_vertex_idx);
+
+		// Disconnect from twin
+		if (edge->m_twin)
+			edge->m_twin->m_twin = nullptr;
+
+		// Mark as obsolete
 		edge->m_prev = nullptr;
+
+		// Proceed iteration
 		edge = edge->m_next;
 	} while (edge != f->m_hedge_start);
-	
-	uint new_w = m_polytope.m_vertices.size();
-	m_polytope.m_vertices.push_back(w);
+
+	// Add pyramidal faces
 	for (uint i = 0; i < v.size(); i++)
-		m_polytope.add_face({ v[i], v[(i + 1) % v.size()], new_w });
-	
-	for (auto it = m_polytope.m_hedges.begin(); it != m_polytope.m_hedges.end();)
-	{
-		if (it->m_prev == nullptr)
-			it = m_polytope.m_hedges.erase(it);
-		else
-			it++;
-	}
-	for (auto it = m_polytope.m_faces.begin(); it != m_polytope.m_faces.end();it++)
-		if (&*it == f)
-		{
-			m_polytope.m_faces.erase(it);
-			break;
-		}
+		m_polytope.add_face({ v[i], v[(i + 1) % v.size()], w });
+
+	// Mark initial face as obsolete
+	f->m_hedge_start = nullptr;
 }
 
-bool epa::get_edge_dist(glm::vec3 n, uint a, uint b, float & dist) const
+void epa::expand_concave(face * a, face * b, uint w)
 {
-	glm::vec3 va = m_polytope.m_vertices[a];
-	glm::vec3 vb = m_polytope.m_vertices[b];
-	glm::vec3 diff = vb - va;
-	glm::vec3 not_ab = glm::cross(diff,n);
-
-	// Outside
-	if (glm::dot(va, not_ab) < 0.0f)
+	//TODO
+	half_edge* edge = a->m_hedge_start;
+	do
 	{
-		if (glm::dot(va, diff) > 0.0f)
-			dist = glm::length(va);
-		else if(glm::dot(vb, diff) < 0.0f)
-			dist = glm::length(vb);
-		else
-		{
-			float diff_len = glm::length2(diff);
-			float a_b = glm::dot(va, vb);
-			dist = glm::sqrt(glm::max((glm::length2(va)*glm::length2(vb) - a_b * a_b) / glm::length2(diff), 0.0f));
-		}
-		return true;
-	}
+		if(edge->m_twin
+		&& edge->m_twin->m_face == b)
+		// Disconnect from twin
+		if (edge->m_twin)
+			edge->m_twin->m_twin = nullptr;
 
-	// Inside or other edge
-	return false;
+		// Mark as obsolete
+		edge->m_prev = nullptr;
+
+		// Proceed iteration
+		edge = edge->m_next;
+	} while (edge != f->m_hedge_start);
 }
 
-float epa::get_face_dist(face * f) const
+bool epa::check_convexity(face * a, face * b) const
 {
-	float dist = -1.f;
-	glm::vec3 n = m_polytope.get_face_plane(f->m_hedge_start);
-	uint s = f->m_indices.size();
-	for (uint i = 0; i < s; ++i)
-	{
-		if (get_edge_dist(n, f->m_indices[i], f->m_indices[(i + 1) % s], dist))
-			break;
-	}
-
-	// If inside, use plane dist
-	if (dist < 0.0f)
-		dist = glm::dot(m_polytope.m_vertices[f->m_indices[0]], n);
-	return dist;
+	glm::vec3 diff = b->m_center - a->m_center;
+	glm::vec3 n = a->m_plane;
+	return glm::dot(n, diff) > 0.0f;
 }
-
