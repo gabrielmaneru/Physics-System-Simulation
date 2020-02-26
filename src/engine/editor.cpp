@@ -166,11 +166,14 @@ bool c_editor::initialize()
 void c_editor::update()
 {
 	draw_debug_bodies();
-	if (!ImGui::IsWindowHovered(ImGuiHoveredFlags_AnyWindow | ImGuiHoveredFlags_AllowWhenBlockedByActiveItem)
-	&& !ImGuizmo::IsOver())
-		object_picking();
-	if (input.is_key_triggered(GLFW_KEY_R))
-		reset_scene();
+	if (!ImGuizmo::IsOver())
+	{
+		if (!ImGui::IsWindowHovered(ImGuiHoveredFlags_AnyWindow | ImGuiHoveredFlags_AllowWhenBlockedByActiveItem))
+			object_picking();
+
+		if (input.is_key_triggered(GLFW_KEY_R))
+			reset_scene();
+	}
 }
 void c_editor::drawGui()const
 {

@@ -1,10 +1,22 @@
+/**
+ * @file epa.cpp
+ * @author Gabriel Maneru, gabriel.m, gabriel.m@digipen.edu
+ * @date 01/28/2020
+ * @brief EPA implementation
+ * @copyright Copyright (C) 2020 DigiPen Institute of Technology.
+**/
 #include "epa.h"
 
+// Initialize statics
 int epa::c_max_iterations = 256u;
+
+/**
+ * EPA constructor
+**/
 epa::epa(gjk & asolver)
 	:solver(asolver)
 {
-	// Expand the simplex into tetrahedron
+	// Check the simplex is a valid one and try to expand it
 	if (solver.m_simplex.m_dim <= 1 || !solver.complete_simplex())
 		m_status = e_Fail_InvalidSimpler;
 	else
@@ -24,7 +36,7 @@ epa::epa(gjk & asolver)
 			std::swap(solver.m_simplex.m_bary[0], solver.m_simplex.m_bary[1]);
 		}
 
-		// Create polytope
+		// Create the polytope
 		m_polytope.m_vertices = {
 			solver.m_simplex.m_points.begin(),
 			solver.m_simplex.m_points.end()
@@ -35,15 +47,17 @@ epa::epa(gjk & asolver)
 		m_polytope.add_face({ 0u, 2u, 3u });
 		m_polytope.create_twins();
 
-		// Keep track of original directions
+		// Keep track of original support directions
 		m_dirs = {
 		   solver.m_simplex.m_dirs.begin(),
 		   solver.m_simplex.m_dirs.end()
 		};
 	}
-
 }
 
+/**
+ * EPA algorithm
+**/
 epa::status epa::evaluate()
 {
 	// Check if initialisation failed
@@ -74,20 +88,22 @@ epa::status epa::evaluate()
 		expand(closer, w);
 	}
 	
+	// Create resulting face
 	m_result.m_dim = 3;
 	m_result.m_points[0] = m_polytope.m_vertices[closer->m_indices[0]];
 	m_result.m_points[1] = m_polytope.m_vertices[closer->m_indices[1]];
 	m_result.m_points[2] = m_polytope.m_vertices[closer->m_indices[2]];
 
+	// Store support directions
 	m_result.m_dirs[0] = m_dirs[closer->m_indices[0]];
 	m_result.m_dirs[1] = m_dirs[closer->m_indices[1]];
 	m_result.m_dirs[2] = m_dirs[closer->m_indices[2]];
 
+	// Compute barycentrics
 	glm::vec3 proj = closer->m_plane * closer->m_distance;
 	float b0 = glm::length(glm::cross(m_result.m_points[1] - proj, m_result.m_points[2] - proj));
 	float b1 = glm::length(glm::cross(m_result.m_points[2] - proj, m_result.m_points[0] - proj));
 	float b3 = glm::length(glm::cross(m_result.m_points[0] - proj, m_result.m_points[1] - proj));
-
 	float tot = b0 + b1 + b3;
 	m_result.m_bary[0] = b0 / tot;
 	m_result.m_bary[1] = b1 / tot;
@@ -95,7 +111,9 @@ epa::status epa::evaluate()
 
 	return m_status = e_Success;
 }
-
+/**
+ * Find closer face to the origin
+**/
 face * epa::find_closer_face()
 {
 	float dist = -1.f;
@@ -108,7 +126,9 @@ face * epa::find_closer_face()
 	}
 	return best;
 }
-
+/**
+ * Expand polytope on the given face by the given vertex
+**/
 void epa::expand(face *& f, glm::vec3 w)
 {
 	// Add new point
@@ -123,11 +143,13 @@ void epa::expand(face *& f, glm::vec3 w)
 	{
 		half_edge* edge = face->m_hedge_start;
 		if (edge->m_next->m_twin
-		&&  check_convexity(face, edge->m_next->m_twin->m_face))
+		&&  check_concavity(face, edge->m_next->m_twin->m_face))
 			correct_concavity(face, edge->m_next->m_twin->m_face);
 	}
 }
-
+/**
+ * Expand as a pyramid
+**/
 std::vector<face*> epa::expand_pyramid(face * f, uint w)
 {
 	// Add pyramidal faces
@@ -157,7 +179,9 @@ std::vector<face*> epa::expand_pyramid(face * f, uint w)
 	clear_obsolete_polytope();
 	return faces;
 }
-
+/**
+ * Correct the concave faces into convex ones
+**/
 void epa::correct_concavity(face * a, face * b)
 {
 	// Choose intermediate hedge
@@ -206,7 +230,9 @@ void epa::correct_concavity(face * a, face * b)
 
 	clear_obsolete_polytope();
 }
-
+/**
+ * Clear obsolete parts of the polytope
+**/
 void epa::clear_obsolete_polytope()
 {
 	// Remove obsolete edges
@@ -220,7 +246,10 @@ void epa::clear_obsolete_polytope()
 	m_polytope.create_twins();
 }
 
-bool epa::check_convexity(face * a, face * b) const
+/**
+ * Check if two faces are concave
+**/
+bool epa::check_concavity(face * a, face * b) const
 {
 	glm::vec3 diff = b->m_center - a->m_center;
 	glm::vec3 n = a->m_plane;

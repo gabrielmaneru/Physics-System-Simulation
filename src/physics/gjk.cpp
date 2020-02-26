@@ -1,5 +1,15 @@
+/**
+ * @file gjk.cpp
+ * @author Gabriel Maneru, gabriel.m, gabriel.m@digipen.edu
+ * @date 01/28/2020
+ * @brief GJK implementation
+ * @copyright Copyright (C) 2020 DigiPen Institute of Technology.
+**/
 #include "gjk.h"
 
+/**
+ * Non-Default Contructors
+**/
 simplex::simplex(glm::vec3 a, glm::vec3 b)
 {
 	m_points[m_dim++] = a;
@@ -16,59 +26,63 @@ simplex::simplex(glm::vec3 a, glm::vec3 b, glm::vec3 c, glm::vec3 d)
 	m_points[m_dim++] = d;
 }
 
+/**
+ * Project origin into the simplex
+**/
 float simplex::project_origin()
 {
 	switch (m_dim)
 	{
 	case 2:
 	{
-		glm::vec3 diff = m_points[1] - m_points[0];
+		glm::vec3 delta = m_points[1] - m_points[0];
 
 		// Check points are not equal
-		float len2 = glm::length2(diff);
-		if (len2 < c_epsilon)
+		float l = glm::length2(delta);
+		if (l < c_epsilon)
 			return -1.f;
 
 		// Compute projection
-		float t = -glm::dot(m_points[0], diff) / len2;
+		float coef = -glm::dot(m_points[0], delta) / l;
 
 		// Fill voronoi mask
-		if (t <= 0)
+		if (coef <= 0)
 			m_voronoi = voronoi::flag[0];
-		else if (t >= 1)
+		else if (coef >= 1)
 			m_voronoi = voronoi::flag[1];
+
 		// Keep both vertices
 		else
-			m_voronoi = voronoi::seg_region;
+			m_voronoi = voronoi::segment_region;
 
 		//Clamp projection onto line segment
-		t = glm::clamp(t, 0.0f, 1.0f);
+		coef = glm::clamp(coef, 0.0f, 1.0f);
 
 		// Store barycentric
-		m_bary[0] = 1 - t;
-		m_bary[1] = t;
+		m_bary[0] = 1 - coef;
+		m_bary[1] = coef;
 
 		// return distance
-		return glm::length2(m_points[0] + diff * t);
+		return glm::length2(m_points[0] + delta * coef);
 	}
 	break;
 	case 3:
 	{
-		glm::vec3 diff[] = {
+		glm::vec3 delta[] = {
 			m_points[0] - m_points[1],
 			m_points[1] - m_points[2],
 			m_points[2] - m_points[0]
 		};
-		glm::vec3 norm = glm::cross(diff[0], diff[1]);
+		glm::vec3 face_norm = glm::cross(delta[0], delta[1]);
 
 		// Check points are not equal
-		float len2 = glm::length2(norm);
-		if (len2 < c_epsilon)
+		float l = glm::length2(face_norm);
+		if (l < c_epsilon)
 			return -1.f;
 
 		// Create simplexes of the three
 		// segments of the face
-		simplex segs[]{
+		simplex segments[]{
 			{m_points[0],m_points[1]},
 			{m_points[1],m_points[2]},
 			{m_points[2],m_points[0]}
@@ -77,8 +91,8 @@ float simplex::project_origin()
 		// Compute distance to every edge
 		float dist[] = { -1.f, -1.f, -1.f };
 		for (uint cur = 0; cur < 3; ++cur)
-			if (glm::dot(m_points[cur], glm::cross(diff[cur], norm)) > 0.0f)
-				dist[cur] = segs[cur].project_origin();
+			if (glm::dot(m_points[cur], glm::cross(delta[cur], face_norm)) > 0.0f)
+				dist[cur] = segments[cur].project_origin();
 
 		// Get close edge to origin
 		uint closest{ 0u };
@@ -95,14 +109,14 @@ float simplex::project_origin()
 
 			// Fill voronoi mask
 			m_voronoi = 0u;
-			if (segs[closest].m_voronoi & voronoi::flag[0])
+			if (segments[closest].m_voronoi & voronoi::flag[0])
 				m_voronoi |= voronoi::flag[closest];
-			if (segs[closest].m_voronoi & voronoi::flag[1])
+			if (segments[closest].m_voronoi & voronoi::flag[1])
 				m_voronoi |= voronoi::flag[nex];
 
 			// Assign barycentric
-			m_bary[closest] = segs[closest].m_bary[0];
-			m_bary[nex] = segs[closest].m_bary[1];
+			m_bary[closest] = segments[closest].m_bary[0];
+			m_bary[nex] = segments[closest].m_bary[1];
 			m_bary[oth] = 0.f;
 		}
 
@@ -110,17 +124,17 @@ float simplex::project_origin()
 		else
 		{
 			// Project origin onto the face
-			float d = glm::dot(m_points[0], norm);
-			glm::vec3 p = norm * (d / len2);
+			float d = glm::dot(m_points[0], face_norm);
+			glm::vec3 p = face_norm * (d / l);
 			closest_dist = glm::length2(p);
 
 			// Keep the entire face
 			m_voronoi = voronoi::face_region;
 
 			// Assign barycentric
-			float len = glm::sqrt(len2);
-			m_bary[0] = glm::length(glm::cross(diff[1], m_points[1] - p)) / len;
-			m_bary[1] = glm::length(glm::cross(diff[2], m_points[2] - p)) / len;
+			float len = glm::sqrt(l);
+			m_bary[0] = glm::length(glm::cross(delta[1], m_points[1] - p)) / len;
+			m_bary[1] = glm::length(glm::cross(delta[2], m_points[2] - p)) / len;
 			m_bary[2] = 1 - m_bary[0] - m_bary[1];
 		}
 		return closest_dist;
@@ -128,21 +142,21 @@ float simplex::project_origin()
 	break;
 	case 4:
 	{
-		glm::vec3 diff[] = {
+		glm::vec3 delta[] = {
 			m_points[0] - m_points[3],
 			m_points[1] - m_points[3],
 			m_points[2] - m_points[3]
 		};
-		float v = glm::determinant(glm::mat3(diff[0], diff[1], diff[2]));
+		float base_det = glm::determinant(glm::mat3(delta[0], delta[1], delta[2]));
 
 		// Check points are not equal
-		if (glm::abs(v) < c_epsilon)
+		if (glm::abs(base_det) < c_epsilon)
 			return -1.f;
 
 		// Check points are not coplanar
 		glm::vec3 v0_1 = m_points[0] - m_points[1];
 		glm::vec3 v1_2 = m_points[1] - m_points[2];
-		if (v * glm::dot(m_points[0], glm::cross(v1_2, v0_1)) > 0.0f)
+		if (base_det * glm::dot(m_points[0], glm::cross(v1_2, v0_1)) > 0.0f)
 			return -1.f;
 
 		// Create simplexes of the three
@@ -156,7 +170,7 @@ float simplex::project_origin()
 		// Compute distance to every face
 		float dist[] = { -1.f, -1.f, -1.f };
 		for (uint cur = 0; cur < 3; ++cur)
-			if (glm::dot(m_points[3], glm::cross(diff[cur], diff[(cur + 1) % 3])) * v > 0.f)
+			if (glm::dot(m_points[3], glm::cross(delta[cur], delta[(cur + 1) % 3])) * base_det > 0.f)
 				dist[cur] = faces[cur].project_origin();
 
 		// Get closer face to origin
@@ -198,9 +212,9 @@ float simplex::project_origin()
 			m_voronoi = voronoi::tetra_region;
 
 			// Assign barycentric
-			m_bary[0] = glm::determinant(glm::mat3{ m_points[2],m_points[1],m_points[3] }) / v;
-			m_bary[1] = glm::determinant(glm::mat3{ m_points[0],m_points[2],m_points[3] }) / v;
-			m_bary[2] = glm::determinant(glm::mat3{ m_points[1],m_points[0],m_points[3] }) / v;
+			m_bary[0] = glm::determinant(glm::mat3{ m_points[2],m_points[1],m_points[3] }) / base_det;
+			m_bary[1] = glm::determinant(glm::mat3{ m_points[0],m_points[2],m_points[3] }) / base_det;
+			m_bary[2] = glm::determinant(glm::mat3{ m_points[1],m_points[0],m_points[3] }) / base_det;
 			m_bary[3] = 1 - m_bary[0] - m_bary[1] - m_bary[2];
 		}
 		return closest_dist;
@@ -211,44 +225,61 @@ float simplex::project_origin()
 	}
 	return -1.f;
 }
-
-const glm::vec3 & simplex::last()const
-{
-	assert(m_dim > 0u);
-	return m_points[m_dim-1];
-}
-
+/**
+ * Compute next simples iteration
+**/
 simplex simplex::get_next(float & distance, glm::vec3 & next_dir)
 {
+	// Compute origin projection
 	distance = project_origin();
 	
+	simplex next;
 	// Store next simplex data
-	simplex s;
 	for (uint i = 0; i < m_dim; ++i)
 	{
 		// If flagged
 		if (m_voronoi & voronoi::flag[i])
 		{
 			// copy vertex
-			s.m_points[s.m_dim] = m_points[i];
-			s.m_dirs[s.m_dim] = m_dirs[i];
-			s.m_bary[s.m_dim++] = m_bary[i];
+			next.m_points[next.m_dim] = m_points[i];
+			next.m_dirs[next.m_dim] = m_dirs[i];
+			next.m_bary[next.m_dim++] = m_bary[i];
 
 			// contribute to next direction
 			next_dir += m_points[i] * m_bary[i];
 		}
 	}
-	return s;
+	return next;
 }
 
+/**
+ * Get last valid point
+**/
+const glm::vec3 & simplex::last()const
+{
+	assert(m_dim > 0u);
+	return m_points[m_dim-1];
+}
+
+
+
+
+// Initialize statics
 const float gjk::c_min_distance = 1e-3f;
 const uint gjk::c_max_iterations = 64u;
 
+/**
+ * Solver constructor
+**/
 gjk::gjk(const physical_mesh & A, const physical_mesh & B, const glm::mat4 & modA, const glm::mat4 & modB, const glm::mat3 & basisA, const glm::mat3 & basisB)
 	: m_mesh_A(A), m_mesh_B(B),
 	m_mod_to_A(glm::inverse(modA)*modB),
 	m_mod_to_B(glm::transpose(basisB) * basisA)
 {}
+
+/**
+ * GJK algorithm
+**/
 gjk::status gjk::evaluate(glm::vec3 initial_dir)
 {
 	// Get initial direction
@@ -306,42 +337,9 @@ gjk::status gjk::evaluate(glm::vec3 initial_dir)
 			return m_status = e_Fail_IterationLimit;
 	}
 }
-glm::vec3 gjk::supportA(glm::vec3 dir, const physical_mesh & target) const
-{
-	return target.support(dir);
-}
-glm::vec3 gjk::supportB(glm::vec3 dir, const physical_mesh & target) const
-{
-	return tr_point(m_mod_to_A,target.support(m_mod_to_B * dir));
-}
-glm::vec3 gjk::support(glm::vec3 dir)const
-{
-	return supportA(dir, m_mesh_A) - supportB(-dir, m_mesh_B);
-}
-glm::vec3 gjk::support(glm::vec3 dir, uint index) const
-{
-	switch (index)
-	{
-	case 0:
-		return supportA(dir, m_mesh_B);
-		break;
-	case 1:
-		return supportB(dir, m_mesh_A);
-		break;
-	}
-}
-void gjk::add_vertex(simplex & simp, glm::vec3 dir)const
-{
-	glm::vec3 d{ glm::normalize(dir) };
-	simp.m_dirs[simp.m_dim] = d;
-	simp.m_points[simp.m_dim] = support(d);
-	simp.m_bary[simp.m_dim] = 0;
-	++simp.m_dim;
-}
-void gjk::rem_vertex(simplex & simp) const
-{
-	--simp.m_dim;
-}
+/**
+ * Completes the simplex into a tetrahedron
+**/
 bool gjk::complete_simplex()
 {
 	glm::vec3 axis[]{
@@ -413,9 +411,40 @@ bool gjk::complete_simplex()
 			m_simplex.m_points[1] - m_simplex.m_points[3],
 			m_simplex.m_points[2] - m_simplex.m_points[3]
 		));
-		if (glm::abs(v) > c_epsilon)
+		if (glm::abs(v) > 0.0f)
 			return true;
 		break;
 	}
 	return false;
+}
+
+/**
+ * Call the support functions in Local A coordinates
+**/
+glm::vec3 gjk::supportA(glm::vec3 dir, const physical_mesh & target) const
+{
+	return target.support(dir);
+}
+glm::vec3 gjk::supportB(glm::vec3 dir, const physical_mesh & target) const
+{
+	return tr_point(m_mod_to_A,target.support(m_mod_to_B * dir));
+}
+glm::vec3 gjk::support(glm::vec3 dir)const
+{
+	return supportA(dir, m_mesh_A) - supportB(-dir, m_mesh_B);
+}
+/**
+ * Add/Rem verteices in the simplex
+**/
+void gjk::add_vertex(simplex & simp, glm::vec3 dir)const
+{
+	glm::vec3 d{ glm::normalize(dir) };
+	simp.m_dirs[simp.m_dim] = d;
+	simp.m_points[simp.m_dim] = support(d);
+	simp.m_bary[simp.m_dim] = 0;
+	++simp.m_dim;
+}
+void gjk::rem_vertex(simplex & simp) const
+{
+	--simp.m_dim;
 }

@@ -46,8 +46,8 @@ public:
 	bool m_draw_minkowski{false};
 	bool m_draw_gjk_simplex{ false };
 	bool m_draw_epa_simplex{ false };
-	bool m_draw_epa_polytope{ true };
-	bool m_draw_epa_results{ true };
+	bool m_draw_epa_polytope{ false };
+	bool m_draw_epa_results{ false };
 
 	static c_physics& get_instance();
 	friend class c_editor;

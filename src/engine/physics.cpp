@@ -20,9 +20,14 @@ ray_info_detailed c_physics::ray_cast(const ray & world_ray)const
 	{
 		glm::mat4 model = m_bodies[i].get_model();
 		glm::mat4 inv = glm::inverse(model);
+
+		// Create ray
 		ray local_ray = { tr_point(inv,world_ray.m_start),
 			tr_vector(inv,world_ray.m_direction) };
+
+		// Ray cast
 		ray_info local_info = m_meshes[i].ray_cast(local_ray);
+
 		if (local_info.m_intersected && local_info.m_time < info.m_time)
 		{
 			info.m_intersected = true;
@@ -47,36 +52,45 @@ contact_info c_physics::collision_narrow(const physical_mesh & m1,
 	gjk gjk_solver(m1, m2,
 		b1.get_model(), b2.get_model(),
 		b1.get_basis(), b2.get_basis());
+
+	// Call GJK solver
 	gjk_solver.evaluate(init_dir);
 
 	// If Solver success -> Origin is encloseed by simplex
 	if (gjk_solver.m_status == gjk::e_Success)
 	{
-		// minkow
+		// Draw Minkowski
 		if(m_draw_minkowski)
 			for (auto v1 : m1.m_vertices)
 				for (auto v2 : m2.m_vertices)
 					drawer.add_debugline_cube(v1 - tr_point(gjk_solver.m_mod_to_A, v2), 0.1f, black);
 
+		// Draw GJK Simplex
 		if (m_draw_gjk_simplex)
 			for (uint i = 0; i < gjk_solver.m_simplex.m_dim; ++i)
 				for(uint j=0; j < gjk_solver.m_simplex.m_dim; ++j)
 					drawer.add_debugline(gjk_solver.m_simplex.m_points[i],
 						gjk_solver.m_simplex.m_points[j], white);
 
+
+		// Create EPA solver
 		epa epa_solver{ gjk_solver };
 
+		// Draw EPA Simplex
 		if (m_draw_epa_simplex)
 		{
 			drawer.add_debugline_list(epa_solver.m_polytope.get_lines(), blue);
 			drawer.add_debugtri_list(epa_solver.m_polytope.get_triangles(), blue);
 		}
 
+		// Call EPA solver
 		epa_solver.evaluate();
 
-		glm::vec3 color = epa_solver.m_status == epa::e_Success ? green : red;
+
+		// Draw EPA Polytope
 		if (m_draw_epa_polytope)
 		{
+			glm::vec3 color = epa_solver.m_status == epa::e_Success ? green : red;
 			drawer.add_debugline_list(epa_solver.m_polytope.get_lines(), color);
 			drawer.add_debugtri_list(epa_solver.m_polytope.get_triangles(), color);
 			if(epa_solver.m_status == epa::e_Success)
@@ -86,25 +100,22 @@ contact_info c_physics::collision_narrow(const physical_mesh & m1,
 					epa_solver.m_result.m_points[2]
 					}, red);
 		}
+
+		// If Success
 		if (epa_solver.m_status == epa::e_Success)
 		{
-			glm::vec3 p0{ 0.f }, p1{ 0.0f };
-			for (uint i = 0; i < 3; ++i)
-			{
-				p0 += gjk_solver.support(epa_solver.m_result.m_dirs[i], 0)
-					* epa_solver.m_result.m_bary[i];
-				p1 += gjk_solver.support(-epa_solver.m_result.m_dirs[i], 1)
-					* epa_solver.m_result.m_bary[i];
-			}
-
+			// Fill contact info
 			contact_info result{ true };
+
 			result.m_points[0] = tr_point(b1.get_model(), gjk_solver.supportA(epa_solver.m_result.m_dirs[0], m1));
 			result.m_points[1] = tr_point(b1.get_model(), gjk_solver.supportA(epa_solver.m_result.m_dirs[1], m1));
 			result.m_points[2] = tr_point(b1.get_model(), gjk_solver.supportA(epa_solver.m_result.m_dirs[2], m1));
 			result.m_points[3] = tr_point(b1.get_model(), gjk_solver.supportB(-epa_solver.m_result.m_dirs[0], m2));
 			result.m_points[4] = tr_point(b1.get_model(), gjk_solver.supportB(-epa_solver.m_result.m_dirs[1], m2));
 			result.m_points[5] = tr_point(b1.get_model(), gjk_solver.supportB(-epa_solver.m_result.m_dirs[2], m2));
+
 			result.m_bary = epa_solver.m_result.m_bary;
+
 			return result;
 		}
 	}
@@ -124,9 +135,14 @@ void c_physics::update()
 		{
 			const body& b2 = m_bodies[j];
 			const physical_mesh& m2 = m_meshes[j];
+
+			// Collide the two meshes
 			contact_info result = collision_narrow(m1, m2, b1, b2);
-			if (result.m_hit)
+
+			// If valid contact info
+			if (result.m_hit && m_draw_epa_results)
 			{
+				// Draw contact points
 				drawer.add_debugline_cube(result.m_points[0], 0.1f, green);
 				drawer.add_debugline_cube(result.m_points[1], 0.1f, green);
 				drawer.add_debugline_cube(result.m_points[2], 0.1f, green);
@@ -134,27 +150,27 @@ void c_physics::update()
 				drawer.add_debugline_cube(result.m_points[4], 0.1f, red);
 				drawer.add_debugline_cube(result.m_points[5], 0.1f, red);
 
-
+				// Draw Point of intersection in A
 				glm::vec3 av0 = result.m_points[0] * result.m_bary[0]
-					+ result.m_points[1] * result.m_bary[1]
-					+ result.m_points[2] * result.m_bary[2];
-				drawer.add_debugline(result.m_points[0], av0, black);
-				drawer.add_debugline(result.m_points[1], av0, black);
-				drawer.add_debugline(result.m_points[2], av0, black);
-				drawer.add_debugline_cube(av0, 0.1f, green);
+							+   result.m_points[1] * result.m_bary[1]
+							+   result.m_points[2] * result.m_bary[2];
+				drawer.add_debugline_cube(av0, 0.1f, black);
+				drawer.add_debugline_cube(av0, 0.2f, green);
 
+				// Draw Point of intersection in B
 				glm::vec3 av1 = result.m_points[3] * result.m_bary[0]
-					+ result.m_points[4] * result.m_bary[1]
-					+ result.m_points[5] * result.m_bary[2];
-				drawer.add_debugline(result.m_points[3], av1, black);
-				drawer.add_debugline(result.m_points[4], av1, black);
-				drawer.add_debugline(result.m_points[5], av1, black);
-				drawer.add_debugline_cube(av1, 0.1f, red);
+							+   result.m_points[4] * result.m_bary[1]
+							+   result.m_points[5] * result.m_bary[2];
+				drawer.add_debugline_cube(av1, 0.1f, black);
+				drawer.add_debugline_cube(av1, 0.2f, red);
 
+				// Draw Normal line
 				drawer.add_debugline(av0, av1, yellow);
 			}
 		}
 	}
+
+	// Integrate bodies
 	for (auto& b : m_bodies)
 		b.integrate(1.0f/60.0f);
 }
