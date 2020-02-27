@@ -2,28 +2,20 @@
  * @file gjk.cpp
  * @author Gabriel Maneru, gabriel.m, gabriel.m@digipen.edu
  * @date 01/28/2020
- * @brief GJK implementation
+ * @brief Gilbert-Johnson-Keerthi distance algorithm implementation
  * @copyright Copyright (C) 2020 DigiPen Institute of Technology.
 **/
 #include "gjk.h"
 
 /**
- * Non-Default Contructors
+ * Non-Default Contructor
 **/
-simplex::simplex(glm::vec3 a, glm::vec3 b)
+
+simplex::simplex(const std::vector<glm::vec3>& pts)
 {
-	m_points[m_dim++] = a;
-	m_points[m_dim++] = b;
-}
-simplex::simplex(glm::vec3 a, glm::vec3 b, glm::vec3 c)
-	:simplex(a, b)
-{
-	m_points[m_dim++] = c;
-}
-simplex::simplex(glm::vec3 a, glm::vec3 b, glm::vec3 c, glm::vec3 d)
-	:simplex(a, b, c)
-{
-	m_points[m_dim++] = d;
+	m_dim = glm::max<uint>(pts.size(), 4u);
+	for (uint i = 0; i < m_dim; ++i)
+		m_points[i] = pts[i];
 }
 
 /**
@@ -83,9 +75,9 @@ float simplex::project_origin()
 		// Create simplexes of the three
 		// segments of the face
 		simplex segments[]{
-			{m_points[0],m_points[1]},
-			{m_points[1],m_points[2]},
-			{m_points[2],m_points[0]}
+			{{m_points[0],m_points[1]}},
+			{{m_points[1],m_points[2]}},
+			{{m_points[2],m_points[0]}}
 		};
 
 		// Compute distance to every edge
@@ -162,9 +154,9 @@ float simplex::project_origin()
 		// Create simplexes of the three
 		// frontal faces of the tetrahedron
 		simplex faces[3]{
-			{m_points[0],m_points[1],m_points[3]},
-			{m_points[1],m_points[2],m_points[3]},
-			{m_points[2],m_points[0],m_points[3]},
+			{{m_points[0],m_points[1],m_points[3]}},
+			{{m_points[1],m_points[2],m_points[3]}},
+			{{m_points[2],m_points[0],m_points[3]}},
 		};
 
 		// Compute distance to every face
@@ -226,7 +218,7 @@ float simplex::project_origin()
 	return -1.f;
 }
 /**
- * Compute next simples iteration
+ * Compute next simplex iteration
 **/
 simplex simplex::get_next(float & distance, glm::vec3 & next_dir)
 {
@@ -264,10 +256,9 @@ const glm::vec3 & simplex::last()const
 
 
 
-// Initialize statics
+// Initialize static properties
 const float gjk::c_min_distance = 1e-3f;
 const uint gjk::c_max_iterations = 64u;
-
 /**
  * Solver constructor
 **/
@@ -278,7 +269,7 @@ gjk::gjk(const physical_mesh & A, const physical_mesh & B, const glm::mat4 & mod
 {}
 
 /**
- * GJK algorithm
+ * GJK evaluation algorithm
 **/
 gjk::status gjk::evaluate(glm::vec3 initial_dir)
 {
@@ -293,9 +284,10 @@ gjk::status gjk::evaluate(glm::vec3 initial_dir)
 	m_simplex.m_bary[0] = 1.f;
 
 	// Setup previous point data
+	uint prev_dx{ 1u };
+	glm::vec3 m_prev[4];
 	m_prev[0] = m_prev[1] = m_prev[2]
 		= m_prev[3] = m_simplex.last();
-	uint prev_dx{ 1u };
 
 	// Select next direction
 	m_dir = m_simplex.last();
@@ -434,7 +426,7 @@ glm::vec3 gjk::support(glm::vec3 dir)const
 	return supportA(dir, m_mesh_A) - supportB(-dir, m_mesh_B);
 }
 /**
- * Add/Rem verteices in the simplex
+ * Add/Rem vertices in the simplex
 **/
 void gjk::add_vertex(simplex & simp, glm::vec3 dir)const
 {

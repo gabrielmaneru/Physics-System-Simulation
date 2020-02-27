@@ -2,27 +2,18 @@
  * @file gjk.h
  * @author Gabriel Maneru, gabriel.m, gabriel.m@digipen.edu
  * @date 01/28/2020
- * @brief GJK implementation
+ * @brief Gilbert-Johnson-Keerthi distance algorithm implementation
  * @copyright Copyright (C) 2020 DigiPen Institute of Technology.
 **/
 #pragma once
 #include "physical_mesh.h"
+#include <vector>
 #include <array>
-
-namespace voronoi
-{
-	constexpr uint flag[]{ 1<<0, 1<<1, 1<<2, 1<<3};
-	const uint segment_region = flag[0] | flag[1];
-	const uint face_region = flag[0] | flag[1] | flag[2];
-	const uint tetra_region = flag[0] | flag[1]| flag[2] | flag[3];
-}
 
 struct simplex
 {
 	simplex() = default;
-	simplex(glm::vec3 a, glm::vec3 b);
-	simplex(glm::vec3 a, glm::vec3 b, glm::vec3 c);
-	simplex(glm::vec3 a, glm::vec3 b, glm::vec3 c, glm::vec3 d);
+	simplex(const std::vector<glm::vec3>& pts);
 
 	float project_origin();
 	simplex get_next(float& distance, glm::vec3& next_dir);
@@ -35,6 +26,7 @@ struct simplex
 	glm::vec4 m_bary{ 0.0f };
 	uint m_voronoi{ 0u };
 };
+
 struct gjk
 {
 	enum status {
@@ -63,8 +55,15 @@ struct gjk
 	uint m_iterations{ 0u };
 	glm::vec3 m_dir{ 0.0f };
 	simplex m_simplex;
-	glm::vec3 m_prev[4];
 
 	const static float c_min_distance;
 	const static uint c_max_iterations;
 };
+
+namespace voronoi
+{
+	constexpr uint flag[]{ 1 << 0, 1 << 1, 1 << 2, 1 << 3 };
+	const uint segment_region = flag[0] | flag[1];
+	const uint    face_region = flag[0] | flag[1] | flag[2];
+	const uint   tetra_region = flag[0] | flag[1] | flag[2] | flag[3];
+}
