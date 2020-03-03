@@ -16,7 +16,9 @@ struct raw_mesh
 	raw_mesh() = default;
 	raw_mesh(const std::string& path);
 	void fix_mesh();
+	void compute_inertia();
 	
+	glm::mat3 m_inertia;
 	std::vector<glm::vec3> m_vertices;
 	std::vector< std::vector<uint> > m_faces;
 };

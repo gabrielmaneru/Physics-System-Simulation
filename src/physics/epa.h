@@ -36,5 +36,5 @@ struct epa
 	physical_mesh m_polytope;
 	simplex m_result;
 
-	static int c_max_iterations;
+	static uint c_max_iterations;
 };

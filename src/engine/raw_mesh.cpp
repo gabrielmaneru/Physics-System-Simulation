@@ -99,3 +99,83 @@ void raw_mesh::fix_mesh()
 	for (auto& v : m_vertices)
 		v = (v - c) / max_scl;
 }
+
+const float f1(const glm::vec3& w)
+{
+	return w.x + w.y + w.z;
+}
+const float f2(const glm::vec3& w)
+{
+	const float w2x = w.x*w.x;
+	const float w2y = w.y*w.y;
+	return w2x + w.x*w.y + w2y + w.z*f1(w);
+}
+const float f3(const glm::vec3& w)
+{
+	const float w2x = w.x*w.x;
+	const float w3x = w2x * w.x;
+	const float w2y = w.y*w.y;
+	const float w3y = w2y * w.y;
+	return w3x + w2x * w.y + w.x*w2y + w3y + w.z*f2(w);
+}
+template <uint i> const float g(const glm::vec3& w)
+{
+	return f2(w) + w[i] * (f1(w) + w[i]);
+}
+
+void raw_mesh::compute_inertia()
+{
+	float integral_ = 0.0f;
+
+	float integral_x = 0.0f;
+	float integral_y = 0.0f;
+	float integral_z = 0.0f;
+
+	float integral_x2 = 0.0f;
+	float integral_y2 = 0.0f;
+	float integral_z2 = 0.0f;
+
+	float Ixy = 0.0f;
+	float Iyz = 0.0f;
+	float Izx = 0.0f;
+
+	for (uint f =0; f < m_faces.size(); ++f)
+	{
+		const std::vector<uint>& face{ m_faces[f] };
+		const glm::vec3& p0{ m_vertices[face[0]] };
+		for (uint t = 1; t < face.size() - 1; ++t)
+		{
+			const glm::vec3& p1{ m_vertices[face[t]] };
+			const glm::vec3& p2{ m_vertices[face[t + 1]] };
+
+			const glm::vec3 d{ glm::cross(p1 - p0,p2 - p0) };
+			const glm::vec3 x{ p0.x,p1.x,p2.x };
+			const glm::vec3 y{ p0.y,p1.y,p2.y };
+			const glm::vec3 z{ p0.z,p1.z,p2.z };
+
+			integral_   += d[0] /  6.0f * f1(x);
+
+			integral_x  += d[0] / 12.0f * f2(x);
+			integral_y  += d[1] / 12.0f * f2(y);
+			integral_z  += d[2] / 12.0f * f2(z);
+
+			integral_x2 += d[0] / 20.0f * f3(x);
+			integral_y2 += d[1] / 20.0f * f3(y);
+			integral_z2 += d[2] / 20.0f * f3(z);
+
+			Ixy += d[0] / 60.0f * (y[0]*g<0>(x) + y[1]*g<1>(x) + y[2]*g<2>(x));
+			Iyz += d[1] / 60.0f * (z[0]*g<0>(x) + z[1]*g<1>(y) + z[2]*g<2>(x));
+			Izx += d[2] / 60.0f * (x[0]*g<0>(x) + x[1]*g<1>(x) + x[2]*g<2>(z));
+		}
+	}
+
+	float Ixx = integral_y2 + integral_z2;
+	float Iyy = integral_z2 + integral_x2;
+	float Izz = integral_x2 + integral_y2;
+	
+	m_inertia = {
+		 Ixx,-Ixy,-Izx,
+		-Ixy, Iyy,-Iyz,
+		-Izx,-Iyz, Izz
+	};
+}

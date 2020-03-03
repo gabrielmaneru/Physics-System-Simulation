@@ -13,7 +13,7 @@
 
 simplex::simplex(const std::vector<glm::vec3>& pts)
 {
-	m_dim = glm::max<uint>(pts.size(), 4u);
+	m_dim = glm::min(static_cast<uint>(pts.size()), 4u);
 	for (uint i = 0; i < m_dim; ++i)
 		m_points[i] = pts[i];
 }
@@ -258,7 +258,7 @@ const glm::vec3 & simplex::last()const
 
 // Initialize static properties
 const float gjk::c_min_distance = 1e-3f;
-const uint gjk::c_max_iterations = 64u;
+uint gjk::c_max_iterations = 64u;
 /**
  * Solver constructor
 **/
@@ -294,6 +294,10 @@ gjk::status gjk::evaluate(glm::vec3 initial_dir)
 	
 	for(;;)
 	{
+		// Prevent infinite loops
+		if (m_status == e_Running && m_iterations++ == c_max_iterations)
+			return m_status = e_Fail_IterationLimit;
+
 		// Check if origin layed on the projection
 		len = glm::length(m_dir);
 		if (len < c_min_distance)
@@ -323,10 +327,6 @@ gjk::status gjk::evaluate(glm::vec3 initial_dir)
 		// If origin is inside the tetrahedron
 		if(m_simplex.m_dim == 4u)
 			return m_status = e_Success;
-
-		// Prevent infinite loops
-		if (m_status == e_Running && ++m_iterations == c_max_iterations)
-			return m_status = e_Fail_IterationLimit;
 	}
 }
 /**

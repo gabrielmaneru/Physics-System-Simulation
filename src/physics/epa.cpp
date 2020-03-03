@@ -8,7 +8,7 @@
 #include "epa.h"
 
 // Initialize statics
-int epa::c_max_iterations = 256u;
+uint epa::c_max_iterations = 256u;
 
 /**
  * EPA constructor
@@ -132,7 +132,7 @@ face * epa::find_closer_face()
 void epa::expand(face *& f, glm::vec3 w)
 {
 	// Add new point
-	uint new_w = m_polytope.m_vertices.size();
+	uint new_w = static_cast<uint>(m_polytope.m_vertices.size());
 	m_polytope.m_vertices.push_back(w);
 
 	// Expand adding the new point

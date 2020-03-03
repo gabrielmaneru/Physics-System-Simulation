@@ -208,6 +208,7 @@ body& c_physics::add_body(std::string file)
 
 	m_meshes.emplace_back(std::move(m));
 	m_bodies.push_back({});
+	m_bodies.back().set
 	return m_bodies.back();
 }
 

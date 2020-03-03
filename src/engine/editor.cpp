@@ -49,20 +49,11 @@ void c_editor::ImGui_Shutdown()const
 void c_editor::create_scene() const
 {
 	physics.add_body("cube.obj")
-		.set_position({ 0.0f, 0.0f, -3.25f })
-		.set_inertia({ 1.f / 6.f, 0.f, 0.f,
-					   0.f, 1.f / 6.f, 0.f,
-					   0.f, 0.f, 1.f / 6.f });
+		.set_position({ 0.0f, 0.0f, -3.25f });
 	physics.add_body("sphere.obj")
-		.set_position({ 0.0f, 0.0f, -2.5f })
-		.set_inertia({ 2.f / 5.f, 0.f, 0.f,
-					   0.f, 2.f / 5.f, 0.f,
-					   0.f, 0.f, 2.f / 5.f });
+		.set_position({ 0.0f, 0.0f, -2.5f });
 	physics.add_body("cylinder.obj")
-		.set_position({ 0.0f, 0.0f, -5.0f })
-		.set_inertia({ 1.f / 2.f, 0.f, 0.f,
-					   0.f, 1.f / 4.f, 0.f,
-					   0.f, 0.f, 1.f / 2.f });
+		.set_position({ 0.0f, 0.0f, -5.0f });
 	physics.add_body("icosahedron.obj")
 		.set_position({ 0.0f, 0.0f, -7.5f });
 	physics.add_body("octohedron.obj")
@@ -246,10 +237,16 @@ void c_editor::drawGui()const
 	{
 		ImGui::Checkbox("Minkowski", &physics.m_draw_minkowski);
 		ImGui::Checkbox("GJK Simplex", &physics.m_draw_gjk_simplex);
+		int gjk_it = gjk::c_max_iterations;
+		if (ImGui::SliderInt("GJK It", &gjk_it, 0, 64))
+			gjk::c_max_iterations = gjk_it;
+
 		ImGui::Checkbox("EPA Simplex", &physics.m_draw_epa_simplex);
 		ImGui::Checkbox("EPA Polytope", &physics.m_draw_epa_polytope);
 		ImGui::Checkbox("EPA Results", &physics.m_draw_epa_results);
-		ImGui::SliderInt("It", &epa::c_max_iterations, 0, 256);
+		int epa_it = epa::c_max_iterations;
+		if(ImGui::SliderInt("EPA It", &epa_it, 0, 256))
+			epa::c_max_iterations = epa_it;
 		ImGui::End();
 	}
 

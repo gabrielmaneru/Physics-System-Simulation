@@ -37,7 +37,7 @@ void face::refresh()
 	m_plane = glm::vec4(n.x, n.y, n.z, glm::dot(n, p0));
 
 	// Compute distance
-	uint s = m_indices.size();
+	uint s = static_cast<uint>(m_indices.size());
 	for (uint i = 0; i < s && m_distance < 0.0f; ++i)
 	{
 		glm::vec3 va = m_owner->m_vertices[m_indices[i]];
@@ -54,7 +54,6 @@ void face::refresh()
 				m_distance = glm::length(vb);
 			else
 			{
-				float diff_len = glm::length2(diff);
 				float a_b = glm::dot(va, vb);
 				m_distance = glm::sqrt(glm::max((glm::length2(va)*glm::length2(vb) - a_b * a_b) / glm::length2(diff), 0.0f));
 			}

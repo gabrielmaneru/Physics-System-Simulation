@@ -54,10 +54,10 @@ struct gjk
 	status m_status{ e_Running };
 	uint m_iterations{ 0u };
 	glm::vec3 m_dir{ 0.0f };
-	simplex m_simplex;
+	simplex m_simplex{};
 
 	const static float c_min_distance;
-	const static uint c_max_iterations;
+	static uint c_max_iterations;
 };
 
 namespace voronoi
