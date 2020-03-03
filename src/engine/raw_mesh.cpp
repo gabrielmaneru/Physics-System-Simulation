@@ -75,7 +75,9 @@ raw_mesh::raw_mesh(const std::string & path)
 		}
 	}
 	file.close();
+
 	fix_mesh();
+	compute_inertia();
 }
 void raw_mesh::fix_mesh()
 {
