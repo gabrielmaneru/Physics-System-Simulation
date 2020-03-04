@@ -51,6 +51,11 @@ body & body::set_rotation(glm::quat rot)
 	m_rotation = rot;
 	return *this;
 }
+body & body::set_mass(float mass)
+{
+	m_mass = mass;
+	return *this;
+}
 body & body::set_inertia(glm::mat3 i)
 {
 	m_inv_inertia = glm::inverse(i);

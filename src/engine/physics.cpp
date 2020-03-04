@@ -208,7 +208,7 @@ body& c_physics::add_body(std::string file)
 
 	m_meshes.emplace_back(std::move(m));
 	m_bodies.push_back({});
-	m_bodies.back().set_inertia(raw.m_inertia);
+	m_bodies.back().set_mass(raw.m_mass).set_inertia(raw.m_inertia);
 	return m_bodies.back();
 }
 

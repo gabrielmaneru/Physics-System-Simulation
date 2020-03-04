@@ -15,6 +15,7 @@ struct body
 	void integrate(float dt);
 	body& set_position(glm::vec3 pos);
 	body& set_rotation(glm::quat rot);
+	body& set_mass(float mass);
 	body& set_inertia(glm::mat3 i);
 	body& set_freeze(bool freeze);
 	void stop();
