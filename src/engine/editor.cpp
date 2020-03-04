@@ -49,15 +49,21 @@ void c_editor::ImGui_Shutdown()const
 void c_editor::create_scene() const
 {
 	physics.add_body("cube.obj")
-		.set_position({ 0.0f, 0.0f, -3.25f });
+		.set_position({ 0.0f, 0.0f, -3.f });
 	physics.add_body("sphere.obj")
-		.set_position({ 0.0f, 0.0f, -2.5f });
+		.set_position({ 3.0f, 0.0f, -3.f });
 	physics.add_body("cylinder.obj")
-		.set_position({ 0.0f, 0.0f, -5.0f });
+		.set_position({ -3.0f, 0.0f, -3.0f });
 	physics.add_body("icosahedron.obj")
-		.set_position({ 0.0f, 0.0f, -7.5f });
+		.set_position({ 0.0f, 0.0f, -6.f });
 	physics.add_body("octohedron.obj")
-		.set_position({ 2.5f, 0.0f, -5.0f });
+		.set_position({ 3.f, 0.0f, -6.0f });
+	physics.add_body("octohedron.obj")
+		.set_position({ -3.f, 0.0f, -6.0f });
+	physics.add_body("gourd.obj")
+		.set_position({ 6.f, 0.0f, -6.0f });
+	physics.add_body("bunny.obj")
+		.set_position({ -6.f, 0.0f, -6.0f });
 }
 
 void c_editor::reset_scene()

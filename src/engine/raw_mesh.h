@@ -15,10 +15,14 @@ struct raw_mesh
 {
 	raw_mesh() = default;
 	raw_mesh(const std::string& path);
-	void fix_mesh();
-	void compute_inertia();
+	void post_process_mesh();
+	void fix_scale(const glm::vec3& scale);
+	glm::vec3 compute_inertia();
+	void fix_cm(const glm::vec3&);
+
 	
 	glm::mat3 m_inertia;
+	float m_mass;
 	std::vector<glm::vec3> m_vertices;
 	std::vector< std::vector<uint> > m_faces;
 };
