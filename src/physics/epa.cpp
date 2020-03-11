@@ -109,6 +109,10 @@ epa::status epa::evaluate()
 	m_result.m_bary[1] = b1 / tot;
 	m_result.m_bary[2] = b3 / tot;
 
+	// Get Face data
+	m_normal = glm::vec3(closer->m_plane);
+	m_depth = closer->m_distance;
+
 	return m_status = e_Success;
 }
 /**

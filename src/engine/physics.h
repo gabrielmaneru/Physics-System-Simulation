@@ -6,9 +6,10 @@
  * @copyright Copyright (C) 2020 DigiPen Institute of Technology.
 **/
 #pragma once
-#include "body.h"
 #include "raw_mesh.h"
 #include <physics/physical_mesh.h>
+#include <physics/body.h>
+#include <physics/contact_info.h>
 #include <physics/ray.h>
 #include <map>
 #include <array>
@@ -19,20 +20,13 @@ struct ray_info_detailed : public ray_info
 	uint m_body;
 };
 
-struct contact_info
-{
-	bool m_hit{ false };
-	std::array<glm::vec3, 6> m_points;
-	glm::vec3 m_bary;
-};
-
 class c_physics
 {
 	ray_info_detailed ray_cast(const ray&)const;
 	contact_info collision_narrow(const physical_mesh& m1,
 		const physical_mesh& m2,
-		const body& b1,
-		const body& b2)const;
+		body& b1,
+		body& b2)const;
 
 	std::vector<physical_mesh> m_meshes;
 	std::vector<body> m_bodies;

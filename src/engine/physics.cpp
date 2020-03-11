@@ -9,6 +9,7 @@
 #include "drawer.h"
 #include <physics/gjk.h>
 #include <physics/epa.h>
+#include <physics/naive_contact_solver.h>
 
 /**
  * Perform ray instersection with the world
@@ -43,8 +44,8 @@ ray_info_detailed c_physics::ray_cast(const ray & world_ray)const
 
 contact_info c_physics::collision_narrow(const physical_mesh & m1,
 	const physical_mesh & m2,
-	const body & b1,
-	const body & b2) const
+	body & b1,
+	body & b2) const
 {
 	glm::vec3 init_dir = glm::normalize(b2.m_position - b1.m_position);
 
@@ -105,17 +106,34 @@ contact_info c_physics::collision_narrow(const physical_mesh & m1,
 		if (epa_solver.m_status == epa::e_Success)
 		{
 			// Fill contact info
-			contact_info result{ true };
+			contact_info result{&b1,&b2};
 
-			result.m_points[0] = tr_point(b1.get_model(), gjk_solver.supportA(epa_solver.m_result.m_dirs[0], m1));
-			result.m_points[1] = tr_point(b1.get_model(), gjk_solver.supportA(epa_solver.m_result.m_dirs[1], m1));
-			result.m_points[2] = tr_point(b1.get_model(), gjk_solver.supportA(epa_solver.m_result.m_dirs[2], m1));
-			result.m_points[3] = tr_point(b1.get_model(), gjk_solver.supportB(-epa_solver.m_result.m_dirs[0], m2));
-			result.m_points[4] = tr_point(b1.get_model(), gjk_solver.supportB(-epa_solver.m_result.m_dirs[1], m2));
-			result.m_points[5] = tr_point(b1.get_model(), gjk_solver.supportB(-epa_solver.m_result.m_dirs[2], m2));
+			glm::vec3 p0A = tr_point(b1.get_model(), gjk_solver.supportA(epa_solver.m_result.m_dirs[0], m1));
+			glm::vec3 p1A = tr_point(b1.get_model(), gjk_solver.supportA(epa_solver.m_result.m_dirs[1], m1));
+			glm::vec3 p2A = tr_point(b1.get_model(), gjk_solver.supportA(epa_solver.m_result.m_dirs[2], m1));
+			glm::vec3 p0B = tr_point(b1.get_model(), gjk_solver.supportB(-epa_solver.m_result.m_dirs[0], m2));
+			glm::vec3 p1B = tr_point(b1.get_model(), gjk_solver.supportB(-epa_solver.m_result.m_dirs[1], m2));
+			glm::vec3 p2B = tr_point(b1.get_model(), gjk_solver.supportB(-epa_solver.m_result.m_dirs[2], m2));
 
-			result.m_bary = epa_solver.m_result.m_bary;
+			result.m_pi_A = p0A * epa_solver.m_result.m_bary[0]
+				+ p1A * epa_solver.m_result.m_bary[1]
+				+ p2A * epa_solver.m_result.m_bary[2];
+			result.m_pi_B = p0B * epa_solver.m_result.m_bary[0]
+				+ p1B * epa_solver.m_result.m_bary[1]
+				+ p2B * epa_solver.m_result.m_bary[2];
 
+			result.m_depth = epa_solver.m_depth;
+			result.m_normal = epa_solver.m_normal;
+
+			if (m_draw_epa_results)
+			{
+				// Draw Contacts
+				drawer.add_debugline_cube(result.m_pi_A, 0.1f, red);
+				drawer.add_debugline_cube(result.m_pi_B, 0.2f, blue);
+
+				// Draw Normal line
+				drawer.add_debugline(result.m_pi_A, result.m_pi_A + result.m_normal * result.m_depth, yellow);
+			}
 			return result;
 		}
 	}
@@ -127,48 +145,27 @@ contact_info c_physics::collision_narrow(const physical_mesh & m1,
 **/
 void c_physics::update()
 {
+	std::vector<contact_info> contacts;
+
+	// Detect Collision
 	for (uint i = 0; i < m_bodies.size() - 1; ++i)
 	{
-		const body& b1 = m_bodies[i];
+		body& b1 = m_bodies[i];
 		const physical_mesh& m1 = m_meshes[i];
 		for (uint j = i + 1; j < m_bodies.size(); ++j)
 		{
-			const body& b2 = m_bodies[j];
+			body& b2 = m_bodies[j];
 			const physical_mesh& m2 = m_meshes[j];
 
 			// Collide the two meshes
 			contact_info result = collision_narrow(m1, m2, b1, b2);
-
-			// If valid contact info
-			if (result.m_hit && m_draw_epa_results)
-			{
-				// Draw contact points
-				drawer.add_debugline_cube(result.m_points[0], 0.1f, green);
-				drawer.add_debugline_cube(result.m_points[1], 0.1f, green);
-				drawer.add_debugline_cube(result.m_points[2], 0.1f, green);
-				drawer.add_debugline_cube(result.m_points[3], 0.1f, red);
-				drawer.add_debugline_cube(result.m_points[4], 0.1f, red);
-				drawer.add_debugline_cube(result.m_points[5], 0.1f, red);
-
-				// Draw Point of intersection in A
-				glm::vec3 av0 = result.m_points[0] * result.m_bary[0]
-							+   result.m_points[1] * result.m_bary[1]
-							+   result.m_points[2] * result.m_bary[2];
-				drawer.add_debugline_cube(av0, 0.1f, black);
-				drawer.add_debugline_cube(av0, 0.2f, green);
-
-				// Draw Point of intersection in B
-				glm::vec3 av1 = result.m_points[3] * result.m_bary[0]
-							+   result.m_points[4] * result.m_bary[1]
-							+   result.m_points[5] * result.m_bary[2];
-				drawer.add_debugline_cube(av1, 0.1f, black);
-				drawer.add_debugline_cube(av1, 0.2f, red);
-
-				// Draw Normal line
-				drawer.add_debugline(av0, av1, yellow);
-			}
+			if (result.m_hit)
+				contacts.emplace_back(std::move(result));
 		}
 	}
+
+	// Solve Contacts
+	naive_contact_solver{}.evaluate(contacts);
 
 	// Integrate bodies
 	for (auto& b : m_bodies)

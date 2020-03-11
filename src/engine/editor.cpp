@@ -60,10 +60,6 @@ void c_editor::create_scene() const
 		.set_position({ 3.f, 0.0f, -6.0f });
 	physics.add_body("octohedron.obj")
 		.set_position({ -3.f, 0.0f, -6.0f });
-	physics.add_body("gourd.obj")
-		.set_position({ 6.f, 0.0f, -6.0f });
-	physics.add_body("bunny.obj")
-		.set_position({ -6.f, 0.0f, -6.0f });
 }
 
 void c_editor::reset_scene()
@@ -219,15 +215,15 @@ void c_editor::drawGui()const
 				b.m_rotation = glm::normalize(b.m_rotation);
 
 			if (ImGui::Button("StopMovement"))
-				b.stop();
+				b.clear_momentum();
 			ImGui::SameLine();
-			if (ImGui::RadioButton("Freeze", b.m_freeze))
-				b.set_freeze(!b.m_freeze);
+			if (ImGui::RadioButton("Is Static", b.m_is_static))
+				b.set_static(!b.m_is_static);
 
 			ImGui::NewLine();
 			ImGui::InputFloat3("Linear M", &b.m_position.x);
 			ImGui::InputFloat3("Angular M", &b.m_position.x);
-			ImGui::InputFloat("Mass", &b.m_mass);
+			ImGui::InputFloat("Mass", &b.m_inv_mass);
 			
 			ImGui::NewLine();
 

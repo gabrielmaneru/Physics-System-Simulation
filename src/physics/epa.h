@@ -35,6 +35,8 @@ struct epa
 	std::vector<glm::vec3> m_dirs;
 	physical_mesh m_polytope;
 	simplex m_result;
+	glm::vec3 m_normal;
+	float m_depth;
 
 	static uint c_max_iterations;
 };

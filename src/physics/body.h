@@ -16,12 +16,19 @@ struct body
 	body& set_position(glm::vec3 pos);
 	body& set_rotation(glm::quat rot);
 	body& set_mass(float mass);
+	float get_invmass()const;
 	body& set_inertia(glm::mat3 i);
-	body& set_freeze(bool freeze);
-	void stop();
+	glm::mat3 get_local_invinertia()const;
+	glm::mat3 get_oriented_invinertia()const;
+	body& set_static(bool is_static);
+	void clear_momentum();
 
 	glm::mat4 get_model()const;
+	glm::mat4 get_invmodel()const;
 	glm::mat3 get_basis()const;
+	glm::vec3 get_linear_velocity()const;
+	glm::vec3 get_angular_velocity()const;
+	glm::vec3 get_point_velocity(glm::vec3 point);
 
 	glm::vec3 m_position;
 	glm::quat m_rotation;
@@ -29,7 +36,7 @@ struct body
 	glm::vec3 m_angular_momentum{ 0.0f };
 	glm::vec3 m_forces_accumulation{ 0.0f };
 	glm::vec3 m_torques_accumulation{ 0.0f };
-	bool	  m_freeze{ false };
-	float     m_mass{ 1.0f };
+	bool	  m_is_static{ false };
+	float     m_inv_mass{ 1.0f };
 	glm::mat3 m_inv_inertia{ 1.0f };
 };
