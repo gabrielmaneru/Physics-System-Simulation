@@ -165,7 +165,7 @@ TEST(solver, contact_naive)
 	a.integrate(0.f);
 	b.integrate(0.f);
 
-	ASSERT_TRUE(glm::all(glm::epsilonEqual(a.get_linear_velocity(), { 1, 0, 0 }, 0.001f)));
+	ASSERT_TRUE(glm::all(glm::epsilonEqual(a.get_linear_velocity(), { 1, 0, 0 }, 0.01f)));
 	ASSERT_TRUE(glm::all(glm::epsilonEqual(a.get_angular_velocity(), { 0, 0, 0 }, 0.001f)));
 	ASSERT_TRUE(glm::all(glm::epsilonEqual(b.get_linear_velocity(), { 0, 0, 0 }, 0.001f)));
 	ASSERT_TRUE(glm::all(glm::epsilonEqual(b.get_angular_velocity(), { 0, 0, 0 }, 0.001f)));

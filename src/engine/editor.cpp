@@ -48,18 +48,18 @@ void c_editor::ImGui_Shutdown()const
 **/
 void c_editor::create_scene() const
 {
-	physics.add_body("cube.obj")
-		.set_position({ 0.0f, 0.0f, -3.f });
 	physics.add_body("sphere.obj")
-		.set_position({ 3.0f, 0.0f, -3.f });
+		.set_position({ 0.0f, 0.0f, -3.f });
 	physics.add_body("cylinder.obj")
-		.set_position({ -3.0f, 0.0f, -3.0f });
-	physics.add_body("icosahedron.obj")
-		.set_position({ 0.0f, 0.0f, -6.f });
-	physics.add_body("octohedron.obj")
-		.set_position({ 3.f, 0.0f, -6.0f });
-	physics.add_body("octohedron.obj")
-		.set_position({ -3.f, 0.0f, -6.0f });
+		.set_position({ 3.0f, 0.0f, -3.f });
+	//physics.add_body("cylinder.obj")
+	//	.set_position({ -3.0f, 0.0f, -3.0f });
+	//physics.add_body("icosahedron.obj")
+	//	.set_position({ 0.0f, 0.0f, -6.f });
+	//physics.add_body("octohedron.obj")
+	//	.set_position({ 3.f, 0.0f, -6.0f });
+	//physics.add_body("octohedron.obj")
+	//	.set_position({ -3.f, 0.0f, -6.0f });
 }
 
 void c_editor::reset_scene()
@@ -203,7 +203,8 @@ void c_editor::drawGui()const
 			switch (m_operation)
 			{
 			case ImGuizmo::TRANSLATE:
-				b.set_position(glm::vec3{ matrixTranslation[0], matrixTranslation[1], matrixTranslation[2] });
+				glm::vec3 goal{ matrixTranslation[0], matrixTranslation[1], matrixTranslation[2] };
+				b.m_linear_momentum += (goal - b.m_position)*0.2f;
 				break;
 			case ImGuizmo::ROTATE:
 				b.set_rotation(glm::normalize(glm::quat{ glm::radians(eu_angles) }));

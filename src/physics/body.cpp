@@ -15,6 +15,7 @@ void body::integrate(float dt)
 
 	// Apply velocity
 	m_position += get_linear_velocity() * dt;
+	m_linear_momentum *= 0.99f;
 
 	// Add Torques to Angular Momentum
 	m_angular_momentum += m_torques_accumulation;
@@ -24,6 +25,9 @@ void body::integrate(float dt)
 	glm::vec3 w = get_angular_velocity();
 	glm::quat w_quat{ 0.0f, w.x, w.y, w.z };
 	m_rotation = glm::normalize(m_rotation + .5f * w_quat * m_rotation * dt);
+
+	m_angular_momentum *= 0.99f;
+
 }
 void body::add_force(glm::vec3 force, glm::vec3 point)
 {

@@ -123,7 +123,7 @@ contact_info c_physics::collision_narrow(const physical_mesh & m1,
 				+ p2B * epa_solver.m_result.m_bary[2];
 
 			result.m_depth = epa_solver.m_depth;
-			result.m_normal = epa_solver.m_normal;
+			result.m_normal = -epa_solver.m_normal;
 
 			if (m_draw_epa_results)
 			{
