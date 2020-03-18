@@ -9,7 +9,7 @@
 #include "drawer.h"
 #include <physics/gjk.h>
 #include <physics/epa.h>
-#include <physics/naive_contact_solver.h>
+#include <physics/contact_solver.h>
 
 /**
  * Perform ray instersection with the world
@@ -42,7 +42,7 @@ ray_info_detailed c_physics::ray_cast(const ray & world_ray)const
 	return info;
 }
 
-contact_info c_physics::collision_narrow(const physical_mesh & m1,
+contact c_physics::collision_narrow(const physical_mesh & m1,
 	const physical_mesh & m2,
 	body & b1,
 	body & b2) const
@@ -106,7 +106,7 @@ contact_info c_physics::collision_narrow(const physical_mesh & m1,
 		if (epa_solver.m_status == epa::e_Success)
 		{
 			// Fill contact info
-			contact_info result{&b1,&b2};
+			contact result{&b1,&b2};
 
 			glm::vec3 p0A = tr_point(b1.get_model(), gjk_solver.supportA(epa_solver.m_result.m_dirs[0], m1));
 			glm::vec3 p1A = tr_point(b1.get_model(), gjk_solver.supportA(epa_solver.m_result.m_dirs[1], m1));
@@ -145,7 +145,7 @@ contact_info c_physics::collision_narrow(const physical_mesh & m1,
 **/
 void c_physics::update()
 {
-	std::vector<contact_info> contacts;
+	std::vector<contact> contacts;
 
 	// Detect Collision
 	for (uint i = 0; i < m_bodies.size() - 1; ++i)
@@ -158,7 +158,7 @@ void c_physics::update()
 			const physical_mesh& m2 = m_meshes[j];
 
 			// Collide the two meshes
-			contact_info result = collision_narrow(m1, m2, b1, b2);
+			contact result = collision_narrow(m1, m2, b1, b2);
 			if (result.m_hit)
 				contacts.emplace_back(std::move(result));
 		}

@@ -16,6 +16,7 @@ struct body
 	body& set_position(glm::vec3 pos);
 	body& set_rotation(glm::quat rot);
 	body& set_mass(float mass);
+	float get_mass()const;
 	float get_invmass()const;
 	body& set_inertia(glm::mat3 i);
 	glm::mat3 get_local_invinertia()const;

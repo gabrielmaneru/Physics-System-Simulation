@@ -23,7 +23,7 @@ struct ray_info_detailed : public ray_info
 class c_physics
 {
 	ray_info_detailed ray_cast(const ray&)const;
-	contact_info collision_narrow(const physical_mesh& m1,
+	contact collision_narrow(const physical_mesh& m1,
 		const physical_mesh& m2,
 		body& b1,
 		body& b2)const;
