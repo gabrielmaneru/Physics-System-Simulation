@@ -309,8 +309,8 @@ gjk::status gjk::evaluate(glm::vec3 initial_dir)
 		// Check if the point is already in the simplex
 		for (uint i = 0; i < 4; ++i)
 			if (glm::length2(m_simplex.last() - m_prev[i]) < c_min_distance)
-				// Exit is no furthest point has been found
-				return m_status = e_Fail_NoFurthestPoint;
+				// Exit if no furthest point has been found
+				return m_status = (m_simplex.m_dim == 1) ? e_Fail_NoFurthestPoint : e_Success;
 
 		// Update PrevPoints
 		m_prev[prev_dx] = m_simplex.last();
@@ -431,6 +431,12 @@ glm::vec3 gjk::support(glm::vec3 dir)const
 void gjk::add_vertex(simplex & simp, glm::vec3 dir)const
 {
 	glm::vec3 d{ glm::normalize(dir) };
+	glm::vec3 p = support(d);
+
+	for (uint i = 0; i < simp.m_dim; ++i)
+		if (glm::length2(p - simp.m_points[i]) < c_min_distance)
+			return;
+	
 	simp.m_dirs[simp.m_dim] = d;
 	simp.m_points[simp.m_dim] = support(d);
 	simp.m_bary[simp.m_dim] = 0;

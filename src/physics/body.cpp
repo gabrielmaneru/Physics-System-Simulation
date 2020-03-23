@@ -29,7 +29,7 @@ void body::integrate(float dt)
 void body::add_force(glm::vec3 force, glm::vec3 point)
 {
 	glm::vec3 R = point - m_position;
-
+	
 	m_forces_accumulation += force;
 	m_torques_accumulation += glm::cross(R, force);
 }

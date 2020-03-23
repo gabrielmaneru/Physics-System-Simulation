@@ -197,6 +197,14 @@ void physical_mesh::remove_edge(half_edge * hedge)
 			return;
 		}
 }
+/**
+ * Scale the vertices
+**/
+void physical_mesh::scale(float s)
+{
+	for (auto& v : m_vertices)
+		v *= s;
+}
 
 /**
  * Extract the lines of the mesh
@@ -250,7 +258,11 @@ std::vector<glm::vec3> physical_mesh::get_triangles() const
 	glm::vec3 v0 = glm::normalize(p1 - p0);
 	glm::vec3 v1 = glm::normalize(p2 - p1);
 
-	glm::vec3 n = glm::normalize(glm::cross(v0, v1));
+	glm::vec3 n = glm::cross(v0, v1);
+	if (glm::length2(n) == 0.0f)
+		return glm::vec4{0.0f};
+
+	n = glm::normalize(n);
 	return glm::vec4(n.x, n.y, n.z, glm::dot(n, p0));
 }
 /**

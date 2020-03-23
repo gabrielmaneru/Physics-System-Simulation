@@ -57,21 +57,22 @@ contact c_physics::collision_narrow(const physical_mesh & m1,
 	// Call GJK solver
 	gjk_solver.evaluate(init_dir);
 
+	// Draw Minkowski
+	if (m_draw_minkowski)
+		for (auto v1 : m1.m_vertices)
+			for (auto v2 : m2.m_vertices)
+				drawer.add_debugline_cube(v1 - tr_point(gjk_solver.m_mod_to_A, v2), 0.1f, black);
+
+	// Draw GJK Simplex
+	if (m_draw_gjk_simplex)
+		for (uint i = 0; i < gjk_solver.m_simplex.m_dim; ++i)
+			for (uint j = 0; j < gjk_solver.m_simplex.m_dim; ++j)
+				drawer.add_debugline(gjk_solver.m_simplex.m_points[i],
+					gjk_solver.m_simplex.m_points[j], white);
+
 	// If Solver success -> Origin is encloseed by simplex
 	if (gjk_solver.m_status == gjk::e_Success)
 	{
-		// Draw Minkowski
-		if(m_draw_minkowski)
-			for (auto v1 : m1.m_vertices)
-				for (auto v2 : m2.m_vertices)
-					drawer.add_debugline_cube(v1 - tr_point(gjk_solver.m_mod_to_A, v2), 0.1f, black);
-
-		// Draw GJK Simplex
-		if (m_draw_gjk_simplex)
-			for (uint i = 0; i < gjk_solver.m_simplex.m_dim; ++i)
-				for(uint j=0; j < gjk_solver.m_simplex.m_dim; ++j)
-					drawer.add_debugline(gjk_solver.m_simplex.m_points[i],
-						gjk_solver.m_simplex.m_points[j], white);
 
 
 		// Create EPA solver
@@ -125,6 +126,7 @@ contact c_physics::collision_narrow(const physical_mesh & m1,
 			result.m_depth = epa_solver.m_depth;
 			result.m_normal = -epa_solver.m_normal;
 
+
 			if (m_draw_epa_results)
 			{
 				// Draw Contacts
@@ -147,29 +149,37 @@ void c_physics::update()
 {
 	std::vector<contact> contacts;
 
-	// Detect Collision
-	for (uint i = 0; i < m_bodies.size() - 1; ++i)
+	const int it_count{ 7 };
+	const float time_step{ 1.0f / 60.0f };
+	const float time_step_it = time_step / it_count;
+
+	for (uint it = 0; it < it_count; ++it)
 	{
-		body& b1 = m_bodies[i];
-		const physical_mesh& m1 = m_meshes[i];
-		for (uint j = i + 1; j < m_bodies.size(); ++j)
+		// Detect Collision
+		for (uint i = 0; i < m_bodies.size() - 1; ++i)
 		{
-			body& b2 = m_bodies[j];
-			const physical_mesh& m2 = m_meshes[j];
+			body& b1 = m_bodies[i];
+			const physical_mesh& m1 = m_meshes[i];
+			for (uint j = i + 1; j < m_bodies.size(); ++j)
+			{
+				body& b2 = m_bodies[j];
+				const physical_mesh& m2 = m_meshes[j];
 
-			// Collide the two meshes
-			contact result = collision_narrow(m1, m2, b1, b2);
-			if (result.m_hit)
-				contacts.emplace_back(std::move(result));
+				// Collide the two meshes
+				contact result = collision_narrow(m1, m2, b1, b2);
+				if (result.m_hit)
+					contacts.emplace_back(std::move(result));
+			}
 		}
+
+		// Solve Contacts
+		naive_contact_solver{}.evaluate(contacts);
+		contacts.clear();
+
+		// Integrate bodies
+		for (auto& b : m_bodies)
+			b.integrate(time_step_it);
 	}
-
-	// Solve Contacts
-	naive_contact_solver{}.evaluate(contacts);
-
-	// Integrate bodies
-	for (auto& b : m_bodies)
-		b.integrate(1.0f/60.0f);
 }
 
 /**

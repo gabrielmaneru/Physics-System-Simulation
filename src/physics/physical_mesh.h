@@ -33,6 +33,7 @@ struct physical_mesh
 	void create_twins();
 	void merge_coplanar();
 	void remove_edge(half_edge*);
+	void scale(float s);
 
 	std::vector<glm::vec3> get_lines()const;
 	std::vector<glm::vec3> get_triangles()const;

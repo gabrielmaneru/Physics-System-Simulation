@@ -48,10 +48,34 @@ void c_editor::ImGui_Shutdown()const
 **/
 void c_editor::create_scene() const
 {
-	physics.add_body("sphere.obj")
-		.set_position({ 0.0f, 0.0f, -3.f });
-	physics.add_body("cylinder.obj")
-		.set_position({ 3.0f, 0.0f, -3.f });
+	physics.add_body("quad.obj")
+		.set_position({ 0.0f, 0.0f, 0.0f })
+		.set_rotation(glm::quat{ sqrtf(2.0f)*0.5f, sqrtf(2.0f)*0.5f, 0.0f, 0.0f });
+	physics.m_meshes.back().scale(5.0f);
+	physics.add_body("cube.obj")
+		.set_position({ 0.0f, 2.0f, 0.0f });
+	//physics.add_body("cube.obj")
+	//	.set_position({ 0.0f, 0.0f, 2.0f });
+	//physics.add_body("cube.obj")
+	//	.set_position({ 0.0f, 1.1f, 2.0f });
+	//physics.add_body("cube.obj")
+	//	.set_position({ 0.0f, -1.1f, 2.0f });
+	//physics.add_body("cube.obj")
+	//	.set_position({ -1.1f, 0.0f, 2.0f });
+	//physics.add_body("cube.obj")
+	//	.set_position({ -1.1f, 1.1f, 2.0f });
+	//physics.add_body("cube.obj")
+	//	.set_position({ -1.1f, -1.1f, 2.0f });
+	//physics.add_body("cube.obj")
+	//	.set_position({ 1.1f, 0.0f, 2.0f });
+	//physics.add_body("cube.obj")
+	//	.set_position({ 1.1f, 1.1f, 2.0f });
+	//physics.add_body("cube.obj")
+	//	.set_position({ 1.1f, -1.1f, 2.0f });
+	//physics.add_body("sphere.obj")
+	//	.set_position({ 0.0f, 0.0f, -3.f });
+	//physics.add_body("cylinder.obj")
+	//	.set_position({ 3.0f, 0.0f, -3.f });
 	//physics.add_body("cylinder.obj")
 	//	.set_position({ -3.0f, 0.0f, -3.0f });
 	//physics.add_body("icosahedron.obj")

@@ -156,6 +156,13 @@ glm::vec3 raw_mesh::compute_inertia()
 	Iyz /= 120.0f;
 	Izx /= 120.0f;
 
+	if (I0 == 0.0f)
+	{
+		m_mass = 1.0f;
+		m_inertia = glm::mat3(1.0f);
+		return glm::vec3(0.0f);
+	}
+
 	// Store Mass & Center of Mass
 	m_mass = I0;
 	glm::vec3 cm = Iw / m_mass;

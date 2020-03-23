@@ -15,6 +15,7 @@ struct epa
 		e_Running,
 		e_Success,
 		e_Fail_InvalidSimpler,
+		e_Fail_Nan,
 		e_Fail_IterationLimit
 	};
 

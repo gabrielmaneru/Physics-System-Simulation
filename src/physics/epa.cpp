@@ -75,6 +75,9 @@ epa::status epa::evaluate()
 		// Get newer face
 		closer = find_closer_face();
 		glm::vec3 n = m_polytope.get_face_plane(closer->m_hedge_start);
+		if (glm::length2(n) == 0.0f)
+			return m_status = e_Fail_Nan;
+
 		glm::vec3 w = solver.support(n);
 
 		// Check limit reached
