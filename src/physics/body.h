@@ -12,6 +12,7 @@
 struct body
 {
 	void add_force(glm::vec3 force, glm::vec3 point);
+	void add_force(glm::vec3 force);
 	void integrate(float dt);
 	body& set_position(glm::vec3 pos);
 	body& set_rotation(glm::quat rot);

@@ -310,7 +310,7 @@ gjk::status gjk::evaluate(glm::vec3 initial_dir)
 		for (uint i = 0; i < 4; ++i)
 			if (glm::length2(m_simplex.last() - m_prev[i]) < c_min_distance)
 				// Exit if no furthest point has been found
-				return m_status = (m_simplex.m_dim == 1) ? e_Fail_NoFurthestPoint : e_Success;
+				return m_status = e_Fail_NoFurthestPoint;
 
 		// Update PrevPoints
 		m_prev[prev_dx] = m_simplex.last();
@@ -344,15 +344,19 @@ bool gjk::complete_simplex()
 	case 1:
 		for (uint i = 0; i < 3; i++)
 		{
-			add_vertex(m_simplex, axis[i]);
-			if (complete_simplex())
-				return true;
-			rem_vertex(m_simplex);
+			if (add_vertex(m_simplex, axis[i]))
+			{
+				if (complete_simplex())
+					return true;
+				rem_vertex(m_simplex);
+			}
 
-			add_vertex(m_simplex, -axis[i]);
-			if (complete_simplex())
-				return true;
-			rem_vertex(m_simplex);
+			if (add_vertex(m_simplex, -axis[i]))
+			{
+				if (complete_simplex())
+					return true;
+				rem_vertex(m_simplex);
+			}
 		}
 		break;
 
@@ -365,15 +369,19 @@ bool gjk::complete_simplex()
 			if (glm::length2(p) < c_epsilon)
 				continue;
 
-			add_vertex(m_simplex, p);
-			if (complete_simplex())
-				return true;
-			rem_vertex(m_simplex);
+			if (add_vertex(m_simplex, p))
+			{
+				if (complete_simplex())
+					return true;
+				rem_vertex(m_simplex);
+			}
 
-			add_vertex(m_simplex, -p);
-			if (complete_simplex())
-				return true;
-			rem_vertex(m_simplex);
+			if (add_vertex(m_simplex, -p))
+			{
+				if (complete_simplex())
+					return true;
+				rem_vertex(m_simplex);
+			}
 		}
 	}
 	break;
@@ -385,15 +393,19 @@ bool gjk::complete_simplex()
 			m_simplex.m_points[2] - m_simplex.m_points[0]);
 		if (glm::length2(norm) > c_epsilon)
 		{
-			add_vertex(m_simplex, norm);
-			if (complete_simplex())
-				return true;
-			rem_vertex(m_simplex);
+			if (add_vertex(m_simplex, norm))
+			{
+				if (complete_simplex())
+					return true;
+				rem_vertex(m_simplex);
+			}
 
-			add_vertex(m_simplex, -norm);
-			if (complete_simplex())
-				return true;
-			rem_vertex(m_simplex);
+			if (add_vertex(m_simplex, -norm))
+			{
+				if (complete_simplex())
+					return true;
+				rem_vertex(m_simplex);
+			}
 		}
 	}
 	break;
@@ -428,19 +440,20 @@ glm::vec3 gjk::support(glm::vec3 dir)const
 /**
  * Add/Rem vertices in the simplex
 **/
-void gjk::add_vertex(simplex & simp, glm::vec3 dir)const
+bool gjk::add_vertex(simplex & simp, glm::vec3 dir)const
 {
 	glm::vec3 d{ glm::normalize(dir) };
 	glm::vec3 p = support(d);
 
 	for (uint i = 0; i < simp.m_dim; ++i)
 		if (glm::length2(p - simp.m_points[i]) < c_min_distance)
-			return;
+			return false;
 	
 	simp.m_dirs[simp.m_dim] = d;
 	simp.m_points[simp.m_dim] = support(d);
 	simp.m_bary[simp.m_dim] = 0;
 	++simp.m_dim;
+	return true;
 }
 void gjk::rem_vertex(simplex & simp) const
 {

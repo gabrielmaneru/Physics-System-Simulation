@@ -149,37 +149,32 @@ void c_physics::update()
 {
 	std::vector<contact> contacts;
 
-	const int it_count{ 7 };
 	const float time_step{ 1.0f / 60.0f };
-	const float time_step_it = time_step / it_count;
-
-	for (uint it = 0; it < it_count; ++it)
+	
+	// Detect Collision
+	for (uint i = 0; i < m_bodies.size() - 1; ++i)
 	{
-		// Detect Collision
-		for (uint i = 0; i < m_bodies.size() - 1; ++i)
+		body& b1 = m_bodies[i];
+		const physical_mesh& m1 = m_meshes[i];
+		for (uint j = i + 1; j < m_bodies.size(); ++j)
 		{
-			body& b1 = m_bodies[i];
-			const physical_mesh& m1 = m_meshes[i];
-			for (uint j = i + 1; j < m_bodies.size(); ++j)
-			{
-				body& b2 = m_bodies[j];
-				const physical_mesh& m2 = m_meshes[j];
+			body& b2 = m_bodies[j];
+			const physical_mesh& m2 = m_meshes[j];
 
-				// Collide the two meshes
-				contact result = collision_narrow(m1, m2, b1, b2);
-				if (result.m_hit)
-					contacts.emplace_back(std::move(result));
-			}
+			// Collide the two meshes
+			contact result = collision_narrow(m1, m2, b1, b2);
+			if (result.m_hit)
+				contacts.emplace_back(std::move(result));
 		}
-
-		// Solve Contacts
-		naive_contact_solver{}.evaluate(contacts);
-		contacts.clear();
-
-		// Integrate bodies
-		for (auto& b : m_bodies)
-			b.integrate(time_step_it);
 	}
+
+	// Solve Contacts
+	naive_contact_solver{}.evaluate(contacts);
+	contacts.clear();
+
+	// Integrate bodies
+	for (auto& b : m_bodies)
+		b.integrate(time_step);
 }
 
 /**

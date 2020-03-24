@@ -143,7 +143,7 @@ void epa::expand(face *& f, glm::vec3 w)
 	m_polytope.m_vertices.push_back(w);
 
 	// Expand adding the new point
-	std::vector<face*> new_faces{ expand_pyramid(f, new_w) };
+	std::array<face*, 3u> new_faces{ expand_pyramid(f, new_w) };
 
 	// Find if some face is breaking convexity
 	for (auto face : new_faces)
@@ -157,16 +157,16 @@ void epa::expand(face *& f, glm::vec3 w)
 /**
  * Expand as a pyramid
 **/
-std::vector<face*> epa::expand_pyramid(face * f, uint w)
+std::array<face*,3u> epa::expand_pyramid(face * f, uint w)
 {
 	// Add pyramidal faces
-	std::vector<face*> faces;
+	std::array<face*, 3u> faces;
 	m_polytope.add_face({ f->m_indices[0], f->m_indices[1], w });
-	faces.push_back(&m_polytope.m_faces.back());
+	faces[0] = &m_polytope.m_faces.back();
 	m_polytope.add_face({ f->m_indices[1], f->m_indices[2], w });
-	faces.push_back(&m_polytope.m_faces.back());
+	faces[1] = &m_polytope.m_faces.back();
 	m_polytope.add_face({ f->m_indices[2], f->m_indices[0], w });
-	faces.push_back(&m_polytope.m_faces.back());
+	faces[2] = &m_polytope.m_faces.back();
 
 	half_edge* edge = f->m_hedge_start;
 

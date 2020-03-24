@@ -33,6 +33,10 @@ void body::add_force(glm::vec3 force, glm::vec3 point)
 	m_forces_accumulation += force;
 	m_torques_accumulation += glm::cross(R, force);
 }
+void body::add_force(glm::vec3 force)
+{
+	m_forces_accumulation += force;
+}
 body & body::set_position(glm::vec3 pos)
 {
 	m_position = pos;

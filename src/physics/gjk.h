@@ -43,7 +43,7 @@ struct gjk
 	glm::vec3 supportA(glm::vec3 dir, const physical_mesh& target)const;
 	glm::vec3 supportB(glm::vec3 dir, const physical_mesh& target)const;
 	glm::vec3 support(glm::vec3 dir)const;
-	void add_vertex(simplex& simp, glm::vec3 dir)const;
+	bool add_vertex(simplex& simp, glm::vec3 dir)const;
 	void rem_vertex(simplex& simp)const;
 	
 	const physical_mesh& m_mesh_A;

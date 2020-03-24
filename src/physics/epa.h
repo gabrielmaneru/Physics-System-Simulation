@@ -8,6 +8,7 @@
 #pragma once
 #include "gjk.h"
 #include "physical_mesh.h"
+#include <array>
 
 struct epa
 {
@@ -24,7 +25,7 @@ struct epa
 	status evaluate();
 	face* find_closer_face();
 	void expand(face*& f, glm::vec3 w); 
-	std::vector<face*> expand_pyramid(face* f, uint w);
+	std::array<face*,3u> expand_pyramid(face* f, uint w);
 	void correct_concavity(face* a, face* b);
 	void clear_obsolete_polytope();
 
