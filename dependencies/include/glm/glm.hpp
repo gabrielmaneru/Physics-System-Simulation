@@ -139,7 +139,7 @@
 #include "gtx/norm.hpp"
 
 
-const float c_epsilon{ 1e-4f };
+const float c_epsilon{ 1e-3f };
 
 inline glm::vec3 tr_point(glm::mat4 m, glm::vec3 v)
 {

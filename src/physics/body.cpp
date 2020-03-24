@@ -6,18 +6,24 @@
  * @copyright Copyright (C) 2020 DigiPen Institute of Technology.
 **/
 #include "body.h"
-
+inline glm::vec3 error_accum(glm::vec3 o)
+{
+	glm::vec3 r;
+	for (int i = 0; i < 3; ++i)
+		r[i] = std::fabsf(o[i]) < c_epsilon ? 0.0f : o[i];
+	return r;
+}
 void body::integrate(float dt)
 {
 	// Add Forces to Linear Momentum
-	m_linear_momentum += m_forces_accumulation;
+	m_linear_momentum += error_accum(m_forces_accumulation);
 	m_forces_accumulation = glm::vec3{ 0.0f };
 
 	// Apply velocity
 	m_position += get_linear_velocity() * dt;
 
 	// Add Torques to Angular Momentum
-	m_angular_momentum += m_torques_accumulation;
+	m_angular_momentum += error_accum(m_torques_accumulation);
 	m_torques_accumulation = glm::vec3{ 0.0f };
 
 	// Apply rotation
@@ -111,12 +117,12 @@ glm::mat3 body::get_basis() const
 
 glm::vec3 body::get_linear_velocity() const
 {
-	return get_invmass() * m_linear_momentum;
+	return error_accum(get_invmass() * m_linear_momentum);
 }
 
 glm::vec3 body::get_angular_velocity() const
 {
-	return get_oriented_invinertia() * m_angular_momentum;
+	return error_accum(get_oriented_invinertia() * m_angular_momentum);
 }
 
 glm::vec3 body::get_point_velocity(glm::vec3 point)

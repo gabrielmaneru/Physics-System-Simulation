@@ -9,6 +9,7 @@ void naive_contact_solver::evaluate(std::vector<contact>& contacts)
 		const glm::vec3 vA = c.m_body_A->get_point_velocity(c.m_pi_A);
 		const glm::vec3 vB = c.m_body_B->get_point_velocity(c.m_pi_B);
 		const float vRel = glm::dot(c.m_normal, vA - vB);
+
 		if (vRel < 0.0f)
 		{
 			const float rest_coeff = 1.0f;
@@ -27,8 +28,12 @@ void naive_contact_solver::evaluate(std::vector<contact>& contacts)
 	for (contact& c : contacts)
 	{
 		const glm::vec3 force = c.impulse * c.m_normal;
-		c.m_body_A->add_force(force, c.m_pi_A);
-		c.m_body_B->add_force(-force, c.m_pi_B);
+
+		if (!c.m_body_A->m_is_static)
+			c.m_body_A->add_force(force, c.m_pi_A);
+
+		if (!c.m_body_B->m_is_static)
+			c.m_body_B->add_force(-force, c.m_pi_B);
 	}
 }
 

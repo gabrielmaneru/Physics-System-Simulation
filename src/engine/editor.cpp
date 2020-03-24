@@ -49,25 +49,30 @@ void c_editor::ImGui_Shutdown()const
 void c_editor::create_scene() const
 {
 	physics.add_body("cube.obj")
-		.set_position({ 0.0f, 0.0f, 0.0f });
+		.set_position({ 0.0f, -20.0f, 0.0f })
+		.set_static(true);
+	physics.m_meshes.back().scale(40.f);
+
 	physics.add_body("cube.obj")
-		.set_position({ 0.0f, 0.0f, 2.0f });
+		.set_position({ 0.0f, 2.0f, 0.0f });
+	physics.add_body("cube.obj")
+		.set_position({ 0.0f, 2.0f, 2.0f });
+	physics.add_body("cube.obj")
+		.set_position({ 0.0f, 3.1f, 2.0f });
 	physics.add_body("cube.obj")
 		.set_position({ 0.0f, 1.1f, 2.0f });
 	physics.add_body("cube.obj")
-		.set_position({ 0.0f, -1.1f, 2.0f });
+		.set_position({ -1.1f, 2.0f, 2.0f });
 	physics.add_body("cube.obj")
-		.set_position({ -1.1f, 0.0f, 2.0f });
+		.set_position({ -1.1f, 3.1f, 2.0f });
 	physics.add_body("cube.obj")
 		.set_position({ -1.1f, 1.1f, 2.0f });
 	physics.add_body("cube.obj")
-		.set_position({ -1.1f, -1.1f, 2.0f });
+		.set_position({ 1.1f, 2.0f, 2.0f });
 	physics.add_body("cube.obj")
-		.set_position({ 1.1f, 0.0f, 2.0f });
+		.set_position({ 1.1f, 3.1f, 2.0f });
 	physics.add_body("cube.obj")
 		.set_position({ 1.1f, 1.1f, 2.0f });
-	physics.add_body("cube.obj")
-		.set_position({ 1.1f, -1.1f, 2.0f });
 }
 
 void c_editor::reset_scene()
