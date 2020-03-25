@@ -60,19 +60,19 @@ void c_editor::create_scene() const
 	physics.add_body("cube.obj")
 		.set_position({ 0.0f, 3.1f, 2.0f });
 	physics.add_body("cube.obj")
-		.set_position({ 0.0f, 1.1f, 2.0f });
+		.set_position({ 0.0f, 0.9f, 2.0f });
 	physics.add_body("cube.obj")
 		.set_position({ -1.1f, 2.0f, 2.0f });
 	physics.add_body("cube.obj")
 		.set_position({ -1.1f, 3.1f, 2.0f });
 	physics.add_body("cube.obj")
-		.set_position({ -1.1f, 1.1f, 2.0f });
+		.set_position({ -1.1f, 0.9f, 2.0f });
 	physics.add_body("cube.obj")
 		.set_position({ 1.1f, 2.0f, 2.0f });
 	physics.add_body("cube.obj")
 		.set_position({ 1.1f, 3.1f, 2.0f });
 	physics.add_body("cube.obj")
-		.set_position({ 1.1f, 1.1f, 2.0f });
+		.set_position({ 1.1f, 0.9f, 2.0f });
 }
 
 void c_editor::reset_scene()
@@ -90,14 +90,14 @@ void c_editor::draw_debug_bodies()const
 {
 	float size = 20.0f;
 	drawer.add_debugline_cube(glm::vec3(0.0f), 0.1f, white);
-	drawer.add_debugline(glm::vec3(-size, 0.f, 0.f), glm::vec3(size, 0.f, 0.f), white);
-	drawer.add_debugline(glm::vec3(0.f, 0.f, -size), glm::vec3(0.f, 0.f, size), white);
+	drawer.add_debugline(glm::vec3(-size, 0.01f, 0.f), glm::vec3(size, 0.01f, 0.f), white);
+	drawer.add_debugline(glm::vec3(0.f, 0.01f, -size), glm::vec3(0.f, 0.01f, size), white);
 	for (float x = 1.0f; x <= size; x++)
 	{
-		drawer.add_debugline(glm::vec3(-x, 0.f, -size), glm::vec3(-x, 0.f, size), red);
-		drawer.add_debugline(glm::vec3( x, 0.f, -size), glm::vec3( x, 0.f, size), red);
-		drawer.add_debugline(glm::vec3(-size, 0.f, -x), glm::vec3(size, 0.f, -x), blue);
-		drawer.add_debugline(glm::vec3(-size, 0.f,  x), glm::vec3(size, 0.f,  x), blue);
+		drawer.add_debugline(glm::vec3(-x, 0.01f, -size), glm::vec3(-x, 0.01f, size), red);
+		drawer.add_debugline(glm::vec3( x, 0.01f, -size), glm::vec3( x, 0.01f, size), red);
+		drawer.add_debugline(glm::vec3(-size, 0.01f, -x), glm::vec3(size, 0.01f, -x), blue);
+		drawer.add_debugline(glm::vec3(-size, 0.01f,  x), glm::vec3(size, 0.01f,  x), blue);
 	}
 
 	for (uint i = 0; i < physics.m_bodies.size(); i++)
