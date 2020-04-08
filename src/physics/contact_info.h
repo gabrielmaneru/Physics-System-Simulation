@@ -11,10 +11,11 @@ struct contact
 	float m_depth;
 	body* m_body_A;
 	body* m_body_B;
-	float impulse{ 0.0f };
 
 	contact() = default;
 	contact(body* A, body* B)
-		: m_hit{ true }, m_body_A{ A }, m_body_B{ B }
-	{}
+		: m_hit{ true }, m_body_A{ A }, m_body_B{ B }{}
+
+	float impulse{ 0.0f };
+	float JV0;
 };

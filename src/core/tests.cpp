@@ -216,7 +216,7 @@ TEST(constraint_solver, circle_single)
 #include <numeric>
 TEST(constraint_solver, circle_stack)
 {
-	float spd = 10.0f / 60.0f;
+	float spd = 10.0f * physics_dt;
 	// Floor and 4 bodies
 	std::vector<body> bodies(5);
 

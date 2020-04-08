@@ -8,7 +8,6 @@
 #pragma once
 #include <glm/glm.hpp>
 
-
 struct body
 {
 	void add_impulse(glm::vec3 force, glm::vec3 point);
@@ -30,7 +29,7 @@ struct body
 	glm::mat3 get_basis()const;
 	glm::vec3 get_linear_velocity()const;
 	glm::vec3 get_angular_velocity()const;
-	glm::vec3 get_point_velocity(glm::vec3 point);
+	glm::vec3 get_velocity_at_point(glm::vec3 point);
 
 	glm::vec3 m_position;
 	glm::quat m_rotation;
@@ -40,3 +39,5 @@ struct body
 	float     m_inv_mass{ 1.0f };
 	glm::mat3 m_inv_inertia{ 1.0f };
 };
+
+constexpr float physics_dt = 1.f / 60.f;

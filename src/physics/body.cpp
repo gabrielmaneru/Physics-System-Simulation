@@ -113,7 +113,7 @@ glm::vec3 body::get_angular_velocity() const
 	return error_accum(get_oriented_invinertia() * m_angular_momentum);
 }
 
-glm::vec3 body::get_point_velocity(glm::vec3 point)
+glm::vec3 body::get_velocity_at_point(glm::vec3 point)
 {
 	return get_linear_velocity() + glm::cross(get_angular_velocity(), point - m_position);
 }

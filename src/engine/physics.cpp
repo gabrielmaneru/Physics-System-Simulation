@@ -124,7 +124,7 @@ contact c_physics::collision_narrow(const physical_mesh & m1,
 				+ p2B * epa_solver.m_result.m_bary[2];
 
 			result.m_depth = epa_solver.m_depth;
-			result.m_normal = -epa_solver.m_normal;
+			result.m_normal = epa_solver.m_normal;
 
 
 			if (m_draw_epa_results)
@@ -149,7 +149,6 @@ void c_physics::update()
 {
 	std::vector<contact> contacts;
 
-	const float time_step{ 1.0f / 60.0f };
 	
 	// Detect Collision
 	for (uint i = 0; i < m_bodies.size() - 1; ++i)
@@ -169,17 +168,17 @@ void c_physics::update()
 	}
 
 	// Add Gravity
-	//for (auto& b : m_bodies)
-	//	if (!b.m_is_static)
-	//		b.add_impulse(0.05f*m_gravity * b.get_mass());
+	for (auto& b : m_bodies)
+		if (!b.m_is_static)
+			b.add_impulse(0.05f*m_gravity * b.get_mass());
 
 	// Solve Velocity Contraints
-	constraint_contact_solver{64}.evaluate(contacts);
+	constraint_contact_solver{20}.evaluate(contacts);
 	contacts.clear();
 
 	// Integrate bodies
 	for (auto& b : m_bodies)
-		b.integrate_pos(time_step);
+		b.integrate_pos(physics_dt);
 }
 
 /**
