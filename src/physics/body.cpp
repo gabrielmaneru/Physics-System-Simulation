@@ -13,35 +13,26 @@ inline glm::vec3 error_accum(glm::vec3 o)
 		r[i] = std::fabsf(o[i]) < c_epsilon ? 0.0f : o[i];
 	return r;
 }
-void body::integrate(float dt)
+void body::add_impulse(glm::vec3 impulse, glm::vec3 point)
 {
-	// Add Forces to Linear Momentum
-	m_linear_momentum += error_accum(m_forces_accumulation);
-	m_forces_accumulation = glm::vec3{ 0.0f };
-
+	glm::vec3 R = point - m_position;
+	
+	m_linear_momentum += impulse;
+	m_angular_momentum += glm::cross(R, impulse);
+}
+void body::add_impulse(glm::vec3 impulse)
+{
+	m_linear_momentum += impulse;
+}
+void body::integrate_pos(float dt)
+{
 	// Apply velocity
 	m_position += get_linear_velocity() * dt;
-
-	// Add Torques to Angular Momentum
-	m_angular_momentum += error_accum(m_torques_accumulation);
-	m_torques_accumulation = glm::vec3{ 0.0f };
 
 	// Apply rotation
 	glm::vec3 w = get_angular_velocity();
 	glm::quat w_quat{ 0.0f, w.x, w.y, w.z };
 	m_rotation = glm::normalize(m_rotation + .5f * w_quat * m_rotation * dt);
-
-}
-void body::add_force(glm::vec3 force, glm::vec3 point)
-{
-	glm::vec3 R = point - m_position;
-	
-	m_forces_accumulation += force;
-	m_torques_accumulation += glm::cross(R, force);
-}
-void body::add_force(glm::vec3 force)
-{
-	m_forces_accumulation += force;
 }
 body & body::set_position(glm::vec3 pos)
 {
@@ -95,9 +86,6 @@ body & body::set_static(bool is_static)
 void body::clear_momentum()
 {
 	m_linear_momentum = glm::vec3{};
-	m_angular_momentum = glm::vec3{};
-
-	m_forces_accumulation = glm::vec3{};
 	m_angular_momentum = glm::vec3{};
 }
 glm::mat4 body::get_model()const

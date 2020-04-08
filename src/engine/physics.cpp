@@ -168,13 +168,18 @@ void c_physics::update()
 		}
 	}
 
-	// Solve Contacts
-	naive_contact_solver{}.evaluate(contacts);
+	// Add Gravity
+	//for (auto& b : m_bodies)
+	//	if (!b.m_is_static)
+	//		b.add_impulse(0.05f*m_gravity * b.get_mass());
+
+	// Solve Velocity Contraints
+	constraint_contact_solver{64}.evaluate(contacts);
 	contacts.clear();
 
 	// Integrate bodies
 	for (auto& b : m_bodies)
-		b.integrate(time_step);
+		b.integrate_pos(time_step);
 }
 
 /**

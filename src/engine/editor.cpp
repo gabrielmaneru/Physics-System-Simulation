@@ -147,7 +147,7 @@ void c_editor::object_picking()
 				glm::vec3 force = glm::normalize(mouse_ray.m_direction);
 				if (input.is_key_down(GLFW_KEY_LEFT_SHIFT))
 					force *= 0.01f;
-				b.add_force(force, info.m_pi);
+				b.add_impulse(force, info.m_pi);
 			}
 			else
 				m_selected = m_hovered;
