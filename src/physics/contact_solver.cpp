@@ -1,8 +1,8 @@
 #include "contact_solver.h"
 
-void naive_contact_solver::evaluate(std::vector<contact>& contacts)
+void naive_contact_solver::evaluate(std::vector<contact_point>& contacts)
 {
-	for (contact& c : contacts)
+	for (contact_point& c : contacts)
 	{
 		const glm::vec3 rA = c.m_pi_A - c.m_body_A->m_position;
 		const glm::vec3 rB = c.m_pi_B - c.m_body_B->m_position;
@@ -26,7 +26,7 @@ void naive_contact_solver::evaluate(std::vector<contact>& contacts)
 		}
 	}
 
-	for (contact& c : contacts)
+	for (contact_point& c : contacts)
 	{
 		const glm::vec3 force = c.impulse * c.m_normal;
 
@@ -38,10 +38,10 @@ void naive_contact_solver::evaluate(std::vector<contact>& contacts)
 	}
 }
 
-void constraint_contact_solver::evaluate(std::vector<contact>& contacts)
+void constraint_contact_solver::evaluate(std::vector<contact_point>& contacts)
 {
 	for(int it = 0; it < m_iteration_count; ++it)
-		for (contact& c : contacts)
+		for (contact_point& c : contacts)
 		{
 			const glm::vec3 rA = c.m_pi_A - c.m_body_A->m_position;
 			const glm::vec3 rB = c.m_pi_B - c.m_body_B->m_position;
@@ -60,23 +60,14 @@ void constraint_contact_solver::evaluate(std::vector<contact>& contacts)
 			const glm::vec3 vB = c.m_body_B->get_velocity_at_point(c.m_pi_B);
 			const glm::vec3 wA = c.m_body_A->get_angular_velocity();
 			const glm::vec3 wB = c.m_body_B->get_angular_velocity();
-			const float JV
-				= glm::dot(c.m_normal, vA)
-				+ glm::dot(rAxN,wA)
-				+ glm::dot(-c.m_normal, vB)
-				+ glm::dot(-rBxN, wB);
+			const float JV = glm::dot( (vB + glm::cross(wB, rB)) - (vA + glm::cross(wA, rA)), c.m_normal);
 			if (it == 0)
 				c.JV0 = JV;
 
-			const float baumgarte_factor = 0.3f;
-			const bool any_static = c.m_body_A->m_is_static || c.m_body_B->m_is_static;
-			const float rest_coeff = any_static ? 1.0f : 0.5f;
-			const float bias = -baumgarte_factor * c.m_depth / physics_dt
-				+ rest_coeff * c.JV0;
+			const float bias = -m_baumgarte * c.m_depth / physics_dt + m_restitution * c.JV0;
 			
-
 			const float old = c.impulse;
-			const float new_impulse = invEffM * (JV + bias);
+			const float new_impulse = invEffM * -(JV + bias);
 			c.impulse = glm::max(c.impulse + new_impulse,0.0f);
 			const float delta_impulse = c.impulse - old;
 			const glm::vec3 dir_impulse = delta_impulse * c.m_normal;

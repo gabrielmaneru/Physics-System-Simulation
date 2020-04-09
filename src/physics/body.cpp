@@ -6,13 +6,8 @@
  * @copyright Copyright (C) 2020 DigiPen Institute of Technology.
 **/
 #include "body.h"
-inline glm::vec3 error_accum(glm::vec3 o)
-{
-	glm::vec3 r;
-	for (int i = 0; i < 3; ++i)
-		r[i] = std::fabsf(o[i]) < c_epsilon ? 0.0f : o[i];
-	return r;
-}
+float physics_dt = 1.f/60.f;
+
 void body::add_impulse(glm::vec3 impulse, glm::vec3 point)
 {
 	glm::vec3 R = point - m_position;
@@ -24,8 +19,12 @@ void body::add_impulse(glm::vec3 impulse)
 {
 	m_linear_momentum += impulse;
 }
-void body::integrate_pos(float dt)
+void body::integrate(float dt)
 {
+	m_linear_momentum *= 0.98;
+	m_angular_momentum *= 0.98;
+
+
 	// Apply velocity
 	m_position += get_linear_velocity() * dt;
 
@@ -105,12 +104,13 @@ glm::mat3 body::get_basis() const
 
 glm::vec3 body::get_linear_velocity() const
 {
-	return error_accum(get_invmass() * m_linear_momentum);
+
+	return get_invmass() * m_linear_momentum;
 }
 
 glm::vec3 body::get_angular_velocity() const
 {
-	return error_accum(get_oriented_invinertia() * m_angular_momentum);
+	return get_oriented_invinertia() * m_angular_momentum;
 }
 
 glm::vec3 body::get_velocity_at_point(glm::vec3 point)

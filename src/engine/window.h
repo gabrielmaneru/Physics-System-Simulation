@@ -25,6 +25,7 @@ public:
 	GLFWwindow* get_handler();
 	static c_window& get_instance();
 
+	double m_dt{ 0.0f };
 	int m_width{1920};
 	int m_height{1080};
 };

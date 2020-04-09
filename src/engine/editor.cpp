@@ -52,14 +52,13 @@ void c_editor::create_scene() const
 		.set_position({ 0.0f, -20.0f, 0.0f })
 		.set_static(true);
 	physics.m_meshes.back().scale(40.f);
-	physics.add_body("sphere.obj")
-		.set_position({ 0.0f, 1.0f, 0.0f })
-		.set_mass(1.0f);
+
 	physics.add_body("sphere.obj")
 		.set_position({ 0.0f, 2.0f, 0.0f })
 		.set_mass(1.0f);
+
 	physics.add_body("sphere.obj")
-		.set_position({ 0.0f, 3.0f, 0.0f })
+		.set_position({ 1.0f, 2.0f, 0.0f })
 		.set_mass(1.0f);
 
 	//physics.add_body("cube.obj")

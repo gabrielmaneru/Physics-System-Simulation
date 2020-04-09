@@ -2,7 +2,7 @@
 #include <glm/glm.hpp>
 #include "body.h"
 
-struct contact
+struct contact_point
 {
 	bool m_hit{ false };
 	glm::vec3 m_pi_A;
@@ -12,8 +12,8 @@ struct contact
 	body* m_body_A;
 	body* m_body_B;
 
-	contact() = default;
-	contact(body* A, body* B)
+	contact_point() = default;
+	contact_point(body* A, body* B)
 		: m_hit{ true }, m_body_A{ A }, m_body_B{ B }{}
 
 	float impulse{ 0.0f };

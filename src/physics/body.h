@@ -12,7 +12,7 @@ struct body
 {
 	void add_impulse(glm::vec3 force, glm::vec3 point);
 	void add_impulse(glm::vec3 force);
-	void integrate_pos(float dt);
+	void integrate(float dt);
 	body& set_position(glm::vec3 pos);
 	body& set_rotation(glm::quat rot);
 	body& set_mass(float mass);
@@ -40,4 +40,4 @@ struct body
 	glm::mat3 m_inv_inertia{ 1.0f };
 };
 
-constexpr float physics_dt = 1.f / 60.f;
+extern float physics_dt;

@@ -43,6 +43,11 @@ bool c_window::should_exit()
 **/
 void c_window::update()
 {
+	static double time{ glfwGetTime()-1.0f/60.0f };
+	const double currentTime{ glfwGetTime() };
+	m_dt = currentTime - time;
+	time = currentTime;
+
 	input.clear_triggers();
 	glfwPollEvents();
 	glfwGetFramebufferSize(m_window, &m_width, &m_height);

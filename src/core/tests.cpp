@@ -155,8 +155,8 @@ TEST(naive_solver, simple_test)
 	body b;
 	b.set_static(true);
 
-	std::vector<contact> cts(1);
-	contact& c{ cts[0] };
+	std::vector<contact_point> cts(1);
+	contact_point& c{ cts[0] };
 	c = { &a,&b };
 	c.m_normal = glm::normalize(glm::vec3{ 1,1,0 });
 	c.m_pi_A = c.m_pi_B = a.m_position - c.m_normal*5.0f;
@@ -171,7 +171,6 @@ TEST(naive_solver, simple_test)
 }
 TEST(constraint_solver, circle_single)
 {
-	return;
 	// Floor and 4 bodies
 	std::vector<body> bodies(2);
 	{
@@ -188,9 +187,9 @@ TEST(constraint_solver, circle_single)
 	}
 
 	// Contacts
-	std::vector<contact> contacts;
+	std::vector<contact_point> contacts;
 	{
-		contact c{ &bodies[1], &bodies[0] };
+		contact_point c{ &bodies[0], &bodies[1] };
 		// And the normal is facing upwards
 		c.m_normal = { 0, 1, 0 };
 		c.m_depth = 0.0f;
@@ -200,14 +199,14 @@ TEST(constraint_solver, circle_single)
 	}
 
 	// Solve
-	constraint_contact_solver{ 1 }.evaluate(contacts);
+	constraint_contact_solver{ 1, 0.0f, 0.0f }.evaluate(contacts);
 
 	// Ensure correct impulse
 	float supporting_mass = bodies[1].get_mass();
 	ASSERT_NEAR(contacts[0].impulse, supporting_mass * 9.8f, 0.0001f);
 
 	// Ensure velocity cancelation
-	body& body = *contacts[0].m_body_A;
+	body& body = *contacts[0].m_body_B;
 	
 	ASSERT_NEAR(body.m_linear_momentum.y, 0.0f, 0.0001f);
 	ASSERT_NEAR(glm::length2(body.m_linear_momentum), 0.0f, 0.0001f);
@@ -237,11 +236,11 @@ TEST(constraint_solver, circle_stack)
 	}
 
 	// Contacts
-	std::vector<contact> contacts;
+	std::vector<contact_point> contacts;
 	for (size_t i = 1; i < bodies.size(); ++i)
 	{
 		body&     b = bodies[i];
-		contact c{ &bodies[i - 1],&b };
+		contact_point c{ &bodies[i - 1],&b };
 		// And the normal is facing upwards
 		c.m_normal = { 0, 1, 0 };
 		c.m_depth = 0.0f;
@@ -252,7 +251,7 @@ TEST(constraint_solver, circle_stack)
 	}
 
 	// Solve
-	constraint_contact_solver{ 64 }.evaluate(contacts);
+	constraint_contact_solver{ 64, 0.0f, 0.0f }.evaluate(contacts);
 
 	// Ensure all bodies
 	for (size_t i = 0; i < contacts.size(); ++i) {
@@ -261,9 +260,48 @@ TEST(constraint_solver, circle_stack)
 		ASSERT_NEAR(contacts[i].impulse, supporting_mass * spd, 0.1f);
 
 		// Ensure velocity cancelation
-		body& b = *contacts[i].m_body_A;
+		body& b = *contacts[i].m_body_B;
 		ASSERT_NEAR(b.m_linear_momentum.y, 0.0f, 0.001f);
 		ASSERT_NEAR(glm::length2(b.m_linear_momentum), 0.0f, 0.001f);
 		ASSERT_NEAR(glm::length2(b.m_angular_momentum), 0.0f, 0.001f);
 	}
+}
+
+TEST(constraint_solver, circle_single_restitution)
+{
+	// Floor and 4 bodies
+	std::vector<body> bodies(2);
+	{
+		// Floor (made static)
+		bodies[0].set_static(true);
+
+		// Circle (made dynamic)
+		bodies[1].set_mass(1.0f);
+		bodies[1].set_inertia(glm::mat3{ 1.0f / 6.0f });
+		// Stack them (0.5, 1.5, 2.5, ...)
+		bodies[1].set_position(glm::vec3{ 0, 0.5f, 0 });
+		// Add them initial velocity (falling)
+		bodies[1].m_linear_momentum = { 0, -9.8f, 0 };
+	}
+
+	// Contacts
+	std::vector<contact_point> contacts;
+	{
+		contact_point c{ &bodies[0], &bodies[1] };
+		// And the normal is facing upwards
+		c.m_normal = { 0, 1, 0 };
+		c.m_depth = 0.0f;
+		// Collision point is just below the body
+		c.m_pi_A = c.m_pi_B = bodies[1].m_position + glm::vec3(0, -0.5f, 0);
+		contacts.push_back(c);
+	}
+
+	// Solve
+	constraint_contact_solver{ 1, 0.0f, 1.0f }.evaluate(contacts);
+
+	// Ensure velocity cancelation
+	body& body = *contacts[0].m_body_B;
+	ASSERT_NEAR(body.m_linear_momentum.y, 9.8f, 0.0001f);
+	ASSERT_NEAR(glm::length2(body.m_linear_momentum), 9.8f*9.8f, 0.0001f);
+	ASSERT_NEAR(glm::length2(body.m_angular_momentum), 0.0f, 0.0001f);
 }

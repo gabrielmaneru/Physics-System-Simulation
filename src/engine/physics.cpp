@@ -7,6 +7,7 @@
 **/
 #include "physics.h"
 #include "drawer.h"
+#include "window.h"
 #include <physics/gjk.h>
 #include <physics/epa.h>
 #include <physics/contact_solver.h>
@@ -42,7 +43,7 @@ ray_info_detailed c_physics::ray_cast(const ray & world_ray)const
 	return info;
 }
 
-contact c_physics::collision_narrow(const physical_mesh & m1,
+contact_point c_physics::collision_narrow(const physical_mesh & m1,
 	const physical_mesh & m2,
 	body & b1,
 	body & b2) const
@@ -107,7 +108,7 @@ contact c_physics::collision_narrow(const physical_mesh & m1,
 		if (epa_solver.m_status == epa::e_Success)
 		{
 			// Fill contact info
-			contact result{&b1,&b2};
+			contact_point result{&b1,&b2};
 
 			glm::vec3 p0A = tr_point(b1.get_model(), gjk_solver.supportA(epa_solver.m_result.m_dirs[0], m1));
 			glm::vec3 p1A = tr_point(b1.get_model(), gjk_solver.supportA(epa_solver.m_result.m_dirs[1], m1));
@@ -147,9 +148,10 @@ contact c_physics::collision_narrow(const physical_mesh & m1,
 **/
 void c_physics::update()
 {
-	std::vector<contact> contacts;
+	physics_dt = window.m_dt;
 
-	
+	std::vector<contact_point> contacts;
+
 	// Detect Collision
 	for (uint i = 0; i < m_bodies.size() - 1; ++i)
 	{
@@ -161,7 +163,7 @@ void c_physics::update()
 			const physical_mesh& m2 = m_meshes[j];
 
 			// Collide the two meshes
-			contact result = collision_narrow(m1, m2, b1, b2);
+			contact_point result = collision_narrow(m1, m2, b1, b2);
 			if (result.m_hit)
 				contacts.emplace_back(std::move(result));
 		}
@@ -170,15 +172,22 @@ void c_physics::update()
 	// Add Gravity
 	for (auto& b : m_bodies)
 		if (!b.m_is_static)
-			b.add_impulse(0.05f*m_gravity * b.get_mass());
+			b.add_impulse(m_gravity * b.get_mass() * physics_dt);
 
 	// Solve Velocity Contraints
-	constraint_contact_solver{20}.evaluate(contacts);
+	constraint_contact_solver{10, 0.0f, 1.0f}.evaluate(contacts);
+	for (auto c : contacts)
+	{
+		drawer.add_debugline(c.m_pi_A, c.m_pi_B, red);
+		drawer.add_debugline_cube(c.m_pi_A, 0.1f, red);
+		drawer.add_debugline_cube(c.m_pi_B, 0.1f, blue);
+		drawer.add_debugline(c.m_pi_A, c.m_pi_A + c.m_normal * c.m_depth, green);
+	}
 	contacts.clear();
 
-	// Integrate bodies
+	// Integrate bodiesr
 	for (auto& b : m_bodies)
-		b.integrate_pos(physics_dt);
+		b.integrate(physics_dt);
 }
 
 /**

@@ -23,14 +23,14 @@ struct ray_info_detailed : public ray_info
 class c_physics
 {
 	ray_info_detailed ray_cast(const ray&)const;
-	contact collision_narrow(const physical_mesh& m1,
+	contact_point collision_narrow(const physical_mesh& m1,
 		const physical_mesh& m2,
 		body& b1,
 		body& b2)const;
 	std::vector<physical_mesh> m_meshes;
 	std::vector<body> m_bodies;
 	std::map<std::string, raw_mesh> m_loaded_meshes;
-	glm::vec3 m_gravity{ 0.f, -1.f, 0.f };
+	glm::vec3 m_gravity{ 0.f, -0.f, 0.f };
 
 public:
 	void update();
