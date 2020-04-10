@@ -6,6 +6,7 @@
  * @copyright Copyright (C) 2020 DigiPen Institute of Technology.
 **/
 #include "gjk.h"
+#include "math_utils.h"
 
 /**
  * Non-Default Contructor

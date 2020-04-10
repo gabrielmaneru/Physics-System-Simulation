@@ -8,9 +8,9 @@
 #include "physics.h"
 #include "drawer.h"
 #include "window.h"
-#include <physics/gjk.h>
-#include <physics/epa.h>
+#include <physics/sat.h>
 #include <physics/contact_solver.h>
+#include <physics/math_utils.h>
 
 /**
  * Perform ray instersection with the world
@@ -43,12 +43,19 @@ ray_info_detailed c_physics::ray_cast(const ray & world_ray)const
 	return info;
 }
 
-contact_point c_physics::collision_narrow(const physical_mesh & m1,
-	const physical_mesh & m2,
-	body & b1,
-	body & b2) const
+bool c_physics::collision_narrow(overlap_pair * pair) const
 {
-	glm::vec3 init_dir = glm::normalize(b2.m_position - b1.m_position);
+	sat algorithm{ pair };
+	sat::result r = algorithm.test_collision();
+	if (r.m_contact)
+	{
+		pair->m_manifold = r.m_manifold;
+		return true;
+	}
+	return false;
+
+
+	/*glm::vec3 init_dir = glm::normalize(b2.m_position - b1.m_position);
 
 	// Solve using GJK Algorithm
 	gjk gjk_solver(m1, m2,
@@ -140,7 +147,7 @@ contact_point c_physics::collision_narrow(const physical_mesh & m1,
 			return result;
 		}
 	}
-	return {};
+	return {};*/
 }
 
 /**
@@ -148,24 +155,24 @@ contact_point c_physics::collision_narrow(const physical_mesh & m1,
 **/
 void c_physics::update()
 {
-	physics_dt = window.m_dt;
+	physics_dt = static_cast<float>(window.m_dt);
 
-	std::vector<contact_point> contacts;
+	std::vector<overlap_pair> contacts;
 
 	// Detect Collision
 	for (uint i = 0; i < m_bodies.size() - 1; ++i)
 	{
-		body& b1 = m_bodies[i];
-		const physical_mesh& m1 = m_meshes[i];
+		body* b1 = &m_bodies[i];
+		const physical_mesh* m1 = &m_meshes[i];
 		for (uint j = i + 1; j < m_bodies.size(); ++j)
 		{
-			body& b2 = m_bodies[j];
-			const physical_mesh& m2 = m_meshes[j];
+			body* b2 = &m_bodies[j];
+			const physical_mesh* m2 = &m_meshes[j];
 
 			// Collide the two meshes
-			contact_point result = collision_narrow(m1, m2, b1, b2);
-			if (result.m_hit)
-				contacts.emplace_back(std::move(result));
+			overlap_pair pair{ b1,b2,m1,m2 };
+			if (collision_narrow(&pair))
+				contacts.emplace_back(std::move(pair));
 		}
 	}
 
@@ -175,13 +182,16 @@ void c_physics::update()
 			b.add_impulse(m_gravity * b.get_mass() * physics_dt);
 
 	// Solve Velocity Contraints
-	constraint_contact_solver{10, 0.0f, 1.0f}.evaluate(contacts);
-	for (auto c : contacts)
+	constraint_contact_solver{10, 0.2f, 1.0f}.evaluate(contacts);
+	for (auto o : contacts)
+	for (auto p : o.m_manifold.m_points)
 	{
-		drawer.add_debugline(c.m_pi_A, c.m_pi_B, red);
-		drawer.add_debugline_cube(c.m_pi_A, 0.1f, red);
-		drawer.add_debugline_cube(c.m_pi_B, 0.1f, blue);
-		drawer.add_debugline(c.m_pi_A, c.m_pi_A + c.m_normal * c.m_depth, green);
+		const glm::vec3 pA = tr_point(o.m_body_A->get_model(), p.m_pointA);
+		const glm::vec3 pB = tr_point(o.m_body_B->get_model(), p.m_pointB);
+		drawer.add_debugline(pA, pB, red);
+		drawer.add_debugline_cube(pA, 0.1f, red);
+		drawer.add_debugline_cube(pB, 0.1f, blue);
+		drawer.add_debugline(pA, pA + o.m_manifold.m_normal * p.m_depth, green);
 	}
 	contacts.clear();
 

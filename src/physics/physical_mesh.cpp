@@ -6,6 +6,7 @@
  * @copyright Copyright (C) 2020 DigiPen Institute of Technology.
 **/
 #include "physical_mesh.h"
+#include "math_utils.h"
 #include <engine/drawer.h>
 
 /**
@@ -14,7 +15,11 @@
 physical_mesh::physical_mesh(physical_mesh && o)
 	:m_vertices(std::move(o.m_vertices)),
 	m_hedges(std::move(o.m_hedges)),
-	m_faces(std::move(o.m_faces)) {}
+	m_faces(std::move(o.m_faces))
+{
+	for (auto&f : m_faces)
+		f.m_owner = this;
+}
 
 /**
  * Add a new face to the mesh
@@ -204,6 +209,8 @@ void physical_mesh::scale(float s)
 {
 	for (auto& v : m_vertices)
 		v *= s;
+	for (auto& f : m_faces)
+		f.refresh();
 }
 
 /**
@@ -377,4 +384,20 @@ glm::vec3 physical_mesh::support_point_hillclimb(glm::vec3 dir, const half_edge 
 		return support_point_hillclimb(dir, best);
 	else
 		return m_vertices[best->get_end()];
+}
+
+const face * physical_mesh::find_most_antiparallel_face(const glm::vec3 & dir) const
+{
+	float min_dot{ FLT_MAX };
+	const face* most{ nullptr };
+
+	for (auto it = m_faces.cbegin(); it != m_faces.cend(); ++it)
+	{
+		const glm::vec3 n = it->m_plane;
+		float dot = glm::dot(n, dir);
+		if (dot < min_dot)
+			min_dot = dot,
+			most = &*it;
+	}
+	return most;
 }
