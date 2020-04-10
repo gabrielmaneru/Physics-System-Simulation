@@ -1,21 +1,30 @@
 #pragma once
 #include <glm/glm.hpp>
-#include "body.h"
+#include <list>
+
+struct body;
+struct physical_mesh;
 
 struct contact_point
 {
-	bool m_hit{ false };
-	glm::vec3 m_pi_A;
-	glm::vec3 m_pi_B;
-	glm::vec3 m_normal;
+	glm::vec3 m_pointA;
+	glm::vec3 m_pointB;
 	float m_depth;
-	body* m_body_A;
-	body* m_body_B;
-
-	contact_point() = default;
-	contact_point(body* A, body* B)
-		: m_hit{ true }, m_body_A{ A }, m_body_B{ B }{}
-
 	float impulse{ 0.0f };
 	float JV0;
+};
+
+struct contact_manifold
+{
+	glm::vec3 m_normal;
+	std::list<contact_point> m_points;
+};
+
+struct overlap_pair
+{
+	body* m_body_A;
+	body* m_body_B;
+	const physical_mesh* m_mesh_A;
+	const physical_mesh* m_mesh_B;
+	contact_manifold m_manifold;
 };

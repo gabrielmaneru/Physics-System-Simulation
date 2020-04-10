@@ -6,6 +6,7 @@
  * @copyright Copyright (C) 2020 DigiPen Institute of Technology.
 **/
 #include "ray.h"
+#include "math_utils.h"
 
 /**
  * Evaluates the ray at the given time

@@ -11,7 +11,6 @@
 #include "ray.h"
 #include <vector>
 #include <list>
-#include <glm/glm.hpp>
 
 struct ray_info
 {
@@ -43,4 +42,5 @@ struct physical_mesh
 	glm::vec3 support(glm::vec3 dir)const;
 	glm::vec3 support_point_bruteforce(glm::vec3 dir)const;
 	glm::vec3 support_point_hillclimb(glm::vec3 dir, const half_edge* start = nullptr)const;
+	const face* find_most_antiparallel_face(const glm::vec3& dir)const;
 };
