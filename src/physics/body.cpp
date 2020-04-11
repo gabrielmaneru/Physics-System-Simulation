@@ -10,28 +10,45 @@ float physics_dt = 1.f/60.f;
 
 void body::add_impulse(glm::vec3 impulse, glm::vec3 point)
 {
-	glm::vec3 R = point - m_position;
+	if (!m_is_static)
+	{
+		glm::vec3 R = point - m_position;
 	
-	m_linear_momentum += impulse;
-	m_angular_momentum += glm::cross(R, impulse);
+		m_linear_momentum += impulse;
+		m_angular_momentum += glm::cross(R, impulse);
+	}
 }
 void body::add_impulse(glm::vec3 impulse)
 {
-	m_linear_momentum += impulse;
+	if (!m_is_static)
+		m_linear_momentum += impulse;
 }
-void body::integrate(float dt)
+void body::integrate_velocities(const float dt, const glm::vec3& gravity)
 {
-	m_linear_momentum *= 0.98;
-	m_angular_momentum *= 0.98;
+	if (!m_is_static)
+	{
+		// Apply gravity
+		m_linear_momentum += dt * gravity*get_mass();
 
+		// Apply damping
+		float linear_damp_factor = glm::pow(1.0f - m_linear_damping, dt);
+		float angular_damp_factor = glm::pow(1.0f - m_angular_damping, dt);
+		m_linear_momentum *= linear_damp_factor;
+		m_angular_momentum *= angular_damp_factor;
+	}
+}
+void body::integrate_positions(const float dt)
+{
+	if (!m_is_static)
+	{
+		// Apply velocity
+		m_position += get_linear_velocity() * dt;
 
-	// Apply velocity
-	m_position += get_linear_velocity() * dt;
-
-	// Apply rotation
-	glm::vec3 w = get_angular_velocity();
-	glm::quat w_quat{ 0.0f, w.x, w.y, w.z };
-	m_rotation = glm::normalize(m_rotation + .5f * w_quat * m_rotation * dt);
+		// Apply rotation
+		glm::vec3 w = get_angular_velocity();
+		glm::quat w_quat{ 0.0f, w.x, w.y, w.z };
+		m_rotation = glm::normalize(m_rotation + .5f * w_quat * m_rotation * dt);
+	}
 }
 body & body::set_position(glm::vec3 pos)
 {
@@ -113,7 +130,7 @@ glm::vec3 body::get_angular_velocity() const
 	return get_oriented_invinertia() * m_angular_momentum;
 }
 
-glm::vec3 body::get_velocity_at_point(glm::vec3 point)
+glm::vec3 body::get_velocity_at_point(glm::vec3 point)const
 {
 	return get_linear_velocity() + glm::cross(get_angular_velocity(), point - m_position);
 }

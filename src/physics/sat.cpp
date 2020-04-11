@@ -18,7 +18,7 @@ sat::result sat::test_collision()
 	
 	// Check face normals of A as separating axis
 	penetration_data faceA = test_faces(actor::A);
-	if (faceA.m_penetration <= 0.0f)
+	if (faceA.m_penetration <= c_epsilon)
 	{
 		// TODO : Cach faceA
 		return {};
@@ -26,7 +26,7 @@ sat::result sat::test_collision()
 
 	// Check face normals of B as separating axis
 	penetration_data faceB = test_faces(actor::B);
-	if (faceB.m_penetration <= 0.0f)
+	if (faceB.m_penetration <= c_epsilon)
 	{
 		// TODO : Cach faceB
 		return {};
@@ -51,7 +51,7 @@ sat::result sat::test_collision()
 		min_penetration = faceB;
 
 	// Check if minimum penetration axis is edge
-	if (edge.m_penetration < min_penetration.m_penetration)
+	if (edge.m_penetration * 1.005 + 0.005 < min_penetration.m_penetration)
 		min_penetration = edge;
 
 
@@ -236,8 +236,8 @@ contact_manifold sat::generate_manifold(const penetration_data & data)
 
 		// Create contact point
 		contact_point point;
-		point.m_pointA = edge1_closestlocal;
-		point.m_pointB = edge2_closest;
+		point.m_local_A = edge1_closestlocal;
+		point.m_local_B = edge2_closest;
 		point.m_depth = data.m_penetration;
 
 		// Create contact manifold
@@ -306,20 +306,39 @@ contact_manifold sat::generate_manifold(const penetration_data & data)
 		{
 			const float penetration = glm::dot(vtxRef - v, axisRef);
 
-			if (penetration > 0.0f)
+			if (penetration >= 0.0f)
 			{
 				const glm::vec3 pointInc = tr_point(trRefToInc, v);
 				const glm::vec3 pointRef = project_point_plane(v, axisRef, vtxRef);
 
 				contact_point point;
-				point.m_pointA = actor_is_A ? pointRef : pointInc;
-				point.m_pointB = actor_is_A ? pointInc : pointRef;
+				point.m_local_A = actor_is_A ? pointRef : pointInc;
+				point.m_local_B = actor_is_A ? pointInc : pointRef;
 				point.m_depth = penetration;
 
 				manifold.m_points.push_back(point);
 			}
 		}
+		if (manifold.m_points.size() == 0u)
+		{
+			for (auto v : clipVertices)
+			{
+				const float penetration = glm::dot(vtxRef - v, axisRef);
 
+				if (penetration >= 0.0f)
+				{
+					const glm::vec3 pointInc = tr_point(trRefToInc, v);
+					const glm::vec3 pointRef = project_point_plane(v, axisRef, vtxRef);
+
+					contact_point point;
+					point.m_local_A = actor_is_A ? pointRef : pointInc;
+					point.m_local_B = actor_is_A ? pointInc : pointRef;
+					point.m_depth = penetration;
+
+					manifold.m_points.push_back(point);
+				}
+			}
+		}
 		assert(manifold.m_points.size()>0u);
 		return manifold;
 	}

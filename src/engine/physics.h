@@ -27,6 +27,7 @@ class c_physics
 	std::vector<physical_mesh> m_meshes;
 	std::vector<body> m_bodies;
 	std::map<std::string, raw_mesh> m_loaded_meshes;
+	std::map<std::pair<uint,uint>, overlap_pair> m_overlaps;
 	glm::vec3 m_gravity{ 0.f, -1.f, 0.f };
 
 public:

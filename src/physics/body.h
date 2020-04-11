@@ -12,7 +12,8 @@ struct body
 {
 	void add_impulse(glm::vec3 force, glm::vec3 point);
 	void add_impulse(glm::vec3 force);
-	void integrate(float dt);
+	void integrate_velocities(const float dt, const glm::vec3& gravity);
+	void integrate_positions(const float dt);
 	body& set_position(glm::vec3 pos);
 	body& set_rotation(glm::quat rot);
 	body& set_mass(float mass);
@@ -29,12 +30,14 @@ struct body
 	glm::mat3 get_basis()const;
 	glm::vec3 get_linear_velocity()const;
 	glm::vec3 get_angular_velocity()const;
-	glm::vec3 get_velocity_at_point(glm::vec3 point);
+	glm::vec3 get_velocity_at_point(glm::vec3 point)const;
 
 	glm::vec3 m_position;
 	glm::quat m_rotation;
 	glm::vec3 m_linear_momentum{ 0.0f };
 	glm::vec3 m_angular_momentum{ 0.0f };
+	float m_linear_damping{ 0.1f };
+	float m_angular_damping{ 0.1f };
 	bool	  m_is_static{ false };
 	float     m_inv_mass{ 1.0f };
 	glm::mat3 m_inv_inertia{ 1.0f };

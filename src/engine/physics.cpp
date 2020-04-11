@@ -49,10 +49,16 @@ bool c_physics::collision_narrow(overlap_pair * pair) const
 	sat::result r = algorithm.test_collision();
 	if (r.m_contact)
 	{
-		pair->m_manifold = r.m_manifold;
+		pair->add_manifold(r.m_manifold);
+		pair->m_state = overlap_pair::state::Collision;
 		return true;
 	}
-	return false;
+	else
+	{
+		pair->m_manifold.m_points.clear();
+		pair->m_state = overlap_pair::state::NoCollision;
+		return false;
+	}
 
 
 	/*glm::vec3 init_dir = glm::normalize(b2.m_position - b1.m_position);
@@ -157,7 +163,7 @@ void c_physics::update()
 {
 	physics_dt = static_cast<float>(window.m_dt);
 
-	std::vector<overlap_pair> contacts;
+	std::vector<overlap_pair*> contacts;
 
 	// Detect Collision
 	for (uint i = 0; i < m_bodies.size() - 1; ++i)
@@ -170,34 +176,39 @@ void c_physics::update()
 			const physical_mesh* m2 = &m_meshes[j];
 
 			// Collide the two meshes
-			overlap_pair pair{ b1,b2,m1,m2 };
-			if (collision_narrow(&pair))
-				contacts.emplace_back(std::move(pair));
+			overlap_pair* pair = &m_overlaps[{i, j}];
+			if (pair->m_state == overlap_pair::state::New)
+				pair->m_body_A = b1,
+				pair->m_body_B = b2,
+				pair->m_mesh_A = m1,
+				pair->m_mesh_B = m2;
+
+			if (collision_narrow(pair))
+				contacts.push_back(pair);
 		}
 	}
 
 	// Add Gravity
 	for (auto& b : m_bodies)
-		if (!b.m_is_static)
-			b.add_impulse(m_gravity * b.get_mass() * physics_dt);
+			b.integrate_velocities(physics_dt, m_gravity);
 
 	// Solve Velocity Contraints
-	constraint_contact_solver{10, 0.2f, 1.0f}.evaluate(contacts);
+	constraint_contact_solver{8, 0.01f, 0.3f}.evaluate(contacts);
 	for (auto o : contacts)
-	for (auto p : o.m_manifold.m_points)
+	for (auto p : o->m_manifold.m_points)
 	{
-		const glm::vec3 pA = tr_point(o.m_body_A->get_model(), p.m_pointA);
-		const glm::vec3 pB = tr_point(o.m_body_B->get_model(), p.m_pointB);
+		const glm::vec3 pA = tr_point(o->m_body_A->get_model(), p.m_local_A);
+		const glm::vec3 pB = tr_point(o->m_body_B->get_model(), p.m_local_B);
 		drawer.add_debugline(pA, pB, red);
 		drawer.add_debugline_cube(pA, 0.1f, red);
 		drawer.add_debugline_cube(pB, 0.1f, blue);
-		drawer.add_debugline(pA, pA + o.m_manifold.m_normal * p.m_depth, green);
+		drawer.add_debugline(pA, pA + o->m_manifold.m_normal * p.m_depth, green);
 	}
 	contacts.clear();
 
 	// Integrate bodiesr
 	for (auto& b : m_bodies)
-		b.integrate(physics_dt);
+		b.integrate_positions(physics_dt);
 }
 
 /**

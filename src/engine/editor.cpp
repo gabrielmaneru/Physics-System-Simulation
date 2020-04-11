@@ -54,13 +54,37 @@ void c_editor::create_scene() const
 		.set_static(true);
 	physics.m_meshes.back().scale(40.f);
 
-	physics.add_body("cube.obj")
-		.set_position({ 1.0f, 1.0f, 0.0f })
-		.set_mass(1.0f);
-	physics.add_body("sphere.obj")
-		.set_position({ -1.0f, 1.0f, 0.0f })
-		.set_mass(1.0f);
+	//physics.add_body("sphere.obj")
+	//	.set_position({ -1.0f, 0.5f, 0.0f })
+	//	.set_mass(1.0f);
 
+	physics.add_body("cube.obj")
+		.set_position({ 1.1f, 0.5f, 0.0f })
+		.set_mass(1.0f);
+	physics.add_body("cube.obj")
+		.set_position({ 0.0f, 0.5f, 0.0f })
+		.set_mass(1.0f);
+	physics.add_body("cube.obj")
+		.set_position({ -1.1f, 0.5f, 0.0f })
+		.set_mass(1.0f);
+	physics.add_body("cube.obj")
+		.set_position({ 1.1f, 1.5f, 0.0f })
+		.set_mass(1.0f);
+	physics.add_body("cube.obj")
+		.set_position({ 0.0f, 1.5f, 0.0f })
+		.set_mass(1.0f);
+	physics.add_body("cube.obj")
+		.set_position({ -1.1f, 1.5f, 0.0f })
+		.set_mass(1.0f);
+	physics.add_body("cube.obj")
+		.set_position({ 1.1f, 2.5f, 0.0f })
+		.set_mass(1.0f);
+	physics.add_body("cube.obj")
+		.set_position({ 0.0f, 2.5f, 0.0f })
+		.set_mass(1.0f);
+	physics.add_body("cube.obj")
+		.set_position({ -1.1f, 2.5f, 0.0f })
+		.set_mass(1.0f);
 }
 
 void c_editor::reset_scene()
