@@ -31,7 +31,7 @@ void naive_contact_solver::evaluate(std::vector<overlap_pair*>& overlaps)
 			const float jBot = jBotA + jBotB;
 
 			if (jBot != 0.0f)
-				p.impulse = jTop / jBot;
+				p.m_impulse = jTop / jBot;
 		}
 	}
 
@@ -44,7 +44,7 @@ void naive_contact_solver::evaluate(std::vector<overlap_pair*>& overlaps)
 		const glm::vec3 pA = tr_point(trAtoWorld, p.m_local_A);
 		const glm::vec3 pB = tr_point(trBtoWorld, p.m_local_B);
 
-		const glm::vec3 force = p.impulse * o->m_manifold.m_normal;
+		const glm::vec3 force = p.m_impulse * o->m_manifold.m_normal;
 
 		if (!o->m_body_A->m_is_static)
 			o->m_body_A->add_impulse(force, pA);
@@ -71,7 +71,7 @@ void constraint_contact_solver::evaluate(std::vector<overlap_pair*>& overlaps)
 			//	if (!o->m_body_B->m_is_static)
 			//		o->m_body_B->add_impulse(dir_impulse, p.m_world_B);
 			//}
-			p.impulse = 0.0f;
+			p.m_impulse = 0.0f;
 		}
 
 	// For each iteration
@@ -80,44 +80,30 @@ void constraint_contact_solver::evaluate(std::vector<overlap_pair*>& overlaps)
 		// For each pair of overlaps
 		for (auto& pair : overlaps)
 		{
-			body* bA = pair->m_body_A;
-			body* bB = pair->m_body_B;
 			contact_manifold& manifold = pair->m_manifold;
 			const glm::vec3& n = manifold.m_normal;
+			const glm::vec3& vA = pair->m_body_A->m_linear_momentum;
+			const glm::vec3& vB = pair->m_body_B->m_linear_momentum;
+			const glm::vec3& wA = pair->m_body_A->m_angular_momentum;
+			const glm::vec3& wB = pair->m_body_B->m_angular_momentum;
 
 			for (auto& point : manifold.m_points)
 			{
-				const glm::vec3 rA = point.m_world_A - bA->m_position;
-				const glm::vec3 rB = point.m_world_B - bB->m_position;
-				const glm::vec3 rAxN = glm::cross(rA, n);
-				const glm::vec3 rBxN = glm::cross(rB, n);
-				const glm::vec3 IxrAxN = bA->get_oriented_invinertia() * rAxN;
-				const glm::vec3 IxrBxN = bB->get_oriented_invinertia() * rBxN;
-				const float effM
-					= bA->get_invmass()
-					+ bB->get_invmass()
-					+ glm::dot(rAxN, IxrAxN)
-					+ glm::dot(rBxN, IxrBxN);
-				const float invEffM = effM > 0.0f ? 1.0f / effM : 0.0f;
 
-				const glm::vec3 vA = bA->get_velocity_at_point(point.m_world_A);
-				const glm::vec3 vB = bB->get_velocity_at_point(point.m_world_B);
-				const glm::vec3 wA = bA->get_angular_velocity();
-				const glm::vec3 wB = bB->get_angular_velocity();
-				const float JV = glm::dot((vB + glm::cross(wB, rB)) - (vA + glm::cross(wA, rA)), n);
-				if (it == 0)
-					point.JV0 = JV;
+				const glm::vec3 deltaV = vB + glm::cross(wB, point.m_rB) - vA - glm::cross(wA, point.m_rA);
+				const float JV = glm::dot(deltaV, n);
 
-				const float bias = -m_baumgarte * point.m_depth / physics_dt + m_restitution * point.JV0;
+				const float bias_penetration = point.m_depth > c_slop ? -m_baumgarte / physics_dt * (point.m_depth - c_slop) : 0.0f;
+				const float b = bias_penetration + point.m_restitutionBias;
 
-				const float old = point.impulse;
-				const float new_impulse = invEffM * -(JV + bias);
-				point.impulse = glm::max(point.impulse + new_impulse, 0.0f);
-				const float delta_impulse = point.impulse - old;
-				const glm::vec3 dir_impulse = delta_impulse * n;
+				float delta_lambda = point.m_invEffMass * -(JV + b);
+				const float old = point.m_impulse;
+				point.m_impulse = glm::max(point.m_impulse + delta_lambda, 0.0f);
+				delta_lambda = point.m_impulse - old;
+				const glm::vec3 dir_impulse = delta_lambda * n;
 
-				bA->add_impulse(-dir_impulse, point.m_world_A);
-				bB->add_impulse( dir_impulse, point.m_world_B);
+				pair->m_body_A->add_impulse(-dir_impulse, point.m_pA);
+				pair->m_body_B->add_impulse( dir_impulse, point.m_pB);
 			}
 		}
 	}

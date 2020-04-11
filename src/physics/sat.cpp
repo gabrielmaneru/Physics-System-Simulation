@@ -17,24 +17,24 @@ sat::result sat::test_collision()
 	// TODO : Check previous frame separating axis
 	
 	// Check face normals of A as separating axis
-	penetration_data faceA = test_faces(actor::A);
-	if (faceA.m_penetration <= c_epsilon)
+	penetration_data face_A_pen = test_faces(actor::A);
+	if (face_A_pen.m_penetration <= c_epsilon)
 	{
 		// TODO : Cach faceA
 		return {};
 	}
 
 	// Check face normals of B as separating axis
-	penetration_data faceB = test_faces(actor::B);
-	if (faceB.m_penetration <= c_epsilon)
+	penetration_data face_B_pen = test_faces(actor::B);
+	if (face_B_pen.m_penetration <= c_epsilon)
 	{
 		// TODO : Cach faceB
 		return {};
 	}
 
 	// Check edge vs edge
-	penetration_data edge = test_edges();
-	if (edge.m_penetration <= 0.0f)
+	penetration_data edge_pen = test_edges();
+	if (edge_pen.m_penetration <= 0.0f)
 	{
 		// TODO : Cach edge
 		return {};
@@ -45,14 +45,14 @@ sat::result sat::test_collision()
 
 	// Check minimum face penetration axis
 	// Bias the result for better consistency
-	if (faceA.m_penetration < faceB.m_penetration * 1.005 + 0.005)
-		min_penetration = faceA;
+	if (face_A_pen.m_penetration < face_B_pen.m_penetration * 1.005 + 0.005)
+		min_penetration = face_A_pen;
 	else
-		min_penetration = faceB;
+		min_penetration = face_B_pen;
 
 	// Check if minimum penetration axis is edge
-	if (edge.m_penetration * 1.005 + 0.005 < min_penetration.m_penetration)
-		min_penetration = edge;
+	if (edge_pen.m_penetration * 1.005 + 0.005 < min_penetration.m_penetration)
+		min_penetration = edge_pen;
 
 
 	// TODO : Cach minimum penetration info
@@ -83,9 +83,9 @@ sat::penetration_data sat::test_faces(actor a)
 		// Found a separating axis if negative
 		if (penetration < 0.0f)
 		{
-			penetration_data pen{ a,penetration };
-			pen.m_pointers.m_face = f;
-			return pen;
+			penetration_data face_pen{ a,penetration };
+			face_pen.m_pointers.m_face = f;
+			return face_pen;
 		}
 		
 		// Store minimum penetration
@@ -155,10 +155,10 @@ sat::penetration_data sat::test_edges()
 
 				if (penetration < 0.0f)
 				{
-					penetration_data edge_data{ actor::Edge, penetration };
-					edge_data.m_pointers.m_edges.A = edge1;
-					edge_data.m_pointers.m_edges.B = edge2;
-					return edge_data;
+					penetration_data edge_pen{ actor::Edge, penetration };
+					edge_pen.m_pointers.m_edges.A = edge1;
+					edge_pen.m_pointers.m_edges.B = edge2;
+					return edge_pen;
 				}
 
 				if (penetration < min_penetration.m_penetration)
@@ -207,7 +207,7 @@ float sat::compute_edge_penetration(const glm::vec3 & edge1_start, const glm::ve
 
 }
 
-contact_manifold sat::generate_manifold(const penetration_data & data)
+simple_manifold sat::generate_manifold(const penetration_data & data)
 {
 	// If we have and edge vs edge
 	if (data.m_actor == actor::Edge)
@@ -241,7 +241,7 @@ contact_manifold sat::generate_manifold(const penetration_data & data)
 		point.m_depth = data.m_penetration;
 
 		// Create contact manifold
-		contact_manifold manifold;
+		simple_manifold manifold;
 		manifold.m_normal = normalW;
 		manifold.m_points.push_back(point);
 		return manifold;
@@ -299,7 +299,7 @@ contact_manifold sat::generate_manifold(const penetration_data & data)
 		// Create contact point
 
 		// Create contact manifold
-		contact_manifold manifold;
+		simple_manifold manifold;
 		manifold.m_normal = normalW;
 
 		for (auto v : clipVertices)

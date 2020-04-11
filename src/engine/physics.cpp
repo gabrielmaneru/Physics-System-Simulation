@@ -168,23 +168,18 @@ void c_physics::update()
 	// Detect Collision
 	for (uint i = 0; i < m_bodies.size() - 1; ++i)
 	{
-		body* b1 = &m_bodies[i];
-		const physical_mesh* m1 = &m_meshes[i];
 		for (uint j = i + 1; j < m_bodies.size(); ++j)
 		{
-			body* b2 = &m_bodies[j];
-			const physical_mesh* m2 = &m_meshes[j];
-
 			// Collide the two meshes
 			overlap_pair* pair = &m_overlaps[{i, j}];
 			if (pair->m_state == overlap_pair::state::New)
-				pair->m_body_A = b1,
-				pair->m_body_B = b2,
-				pair->m_mesh_A = m1,
-				pair->m_mesh_B = m2;
+				*pair = { &m_bodies[i],&m_bodies[j],&m_meshes[i],&m_meshes[j] };
 
 			if (collision_narrow(pair))
+			{
+				pair->update();
 				contacts.push_back(pair);
+			}
 		}
 	}
 
@@ -193,7 +188,7 @@ void c_physics::update()
 			b.integrate_velocities(physics_dt, m_gravity);
 
 	// Solve Velocity Contraints
-	constraint_contact_solver{8, 0.01f, 0.3f}.evaluate(contacts);
+	constraint_contact_solver{8, 0.00f, 0.5f}.evaluate(contacts);
 	for (auto o : contacts)
 	for (auto p : o->m_manifold.m_points)
 	{

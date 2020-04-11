@@ -36,11 +36,14 @@ struct body
 	glm::quat m_rotation;
 	glm::vec3 m_linear_momentum{ 0.0f };
 	glm::vec3 m_angular_momentum{ 0.0f };
-	float m_linear_damping{ 0.1f };
-	float m_angular_damping{ 0.1f };
 	bool	  m_is_static{ false };
 	float     m_inv_mass{ 1.0f };
 	glm::mat3 m_inv_inertia{ 1.0f };
+	float m_linear_damping{ 0.1f };
+	float m_angular_damping{ 0.1f };
+	float m_friction_coef{ 0.00f };
+	float m_rolling_coef{ 0.00f };
+	float m_bounciness_coef{ 0.1f };
 };
 
 extern float physics_dt;

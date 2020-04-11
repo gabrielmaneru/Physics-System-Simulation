@@ -4,6 +4,8 @@
 #include <vector>
 
 const float c_epsilon{ 1e-3f };
+const float c_rest_vel_threshold{ 0.0f };
+const float c_slop{ 0.00f };
 
 glm::vec3 tr_point(glm::mat4 m, glm::vec3 v);
 glm::vec3 tr_vector(glm::mat4 m, glm::vec3 v);

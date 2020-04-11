@@ -162,7 +162,7 @@ TEST(naive_solver, simple_test)
 	c.m_pi_A = c.m_pi_B = a.m_position - c.m_normal*5.0f;
 	
 	naive_contact_solver{}.evaluate(cts);
-	ASSERT_NEAR(c.impulse, glm::sqrt(2.0f), 0.001f);
+	ASSERT_NEAR(c.m_impulse, glm::sqrt(2.0f), 0.001f);
 	
 	ASSERT_TRUE(glm::all(glm::epsilonEqual(a.get_linear_velocity(), { 1, 0, 0 }, 0.001f)));
 	ASSERT_TRUE(glm::all(glm::epsilonEqual(a.get_angular_velocity(), { 0, 0, 0 }, 0.001f)));
@@ -203,7 +203,7 @@ TEST(constraint_solver, circle_single)
 
 	// Ensure correct impulse
 	float supporting_mass = bodies[1].get_mass();
-	ASSERT_NEAR(contacts[0].impulse, supporting_mass * 9.8f, 0.0001f);
+	ASSERT_NEAR(contacts[0].m_impulse, supporting_mass * 9.8f, 0.0001f);
 
 	// Ensure velocity cancelation
 	body& body = *contacts[0].m_body_B;
@@ -257,7 +257,7 @@ TEST(constraint_solver, circle_stack)
 	for (size_t i = 0; i < contacts.size(); ++i) {
 		// Ensure correct impulse
 		float supporting_mass = std::accumulate(bodies.begin() + i + 1, bodies.end(), 0.0f, [&](float acc, const body& body) { return acc + body.get_mass(); });
-		ASSERT_NEAR(contacts[i].impulse, supporting_mass * spd, 0.1f);
+		ASSERT_NEAR(contacts[i].m_impulse, supporting_mass * spd, 0.1f);
 
 		// Ensure velocity cancelation
 		body& b = *contacts[i].m_body_B;
