@@ -21,10 +21,10 @@ void overlap_pair::update()
 	const glm::vec3& n = m_manifold.m_normal;
 	const glm::vec3& xA = m_body_A->m_position;
 	const glm::vec3& xB = m_body_B->m_position;
-	const glm::vec3& vA = m_body_A->m_linear_momentum;
-	const glm::vec3& vB = m_body_B->m_linear_momentum;
-	const glm::vec3& wA = m_body_A->m_angular_momentum;
-	const glm::vec3& wB = m_body_B->m_angular_momentum;
+	const glm::vec3& vA = m_body_A->get_linear_velocity();
+	const glm::vec3& vB = m_body_B->get_linear_velocity();
+	const glm::vec3& wA = m_body_A->get_angular_velocity();
+	const glm::vec3& wB = m_body_B->get_angular_velocity();
 	const glm::mat4 AtoW = m_body_A->get_model();
 	const glm::mat4 BtoW = m_body_B->get_model();
 

@@ -247,8 +247,8 @@ void c_editor::drawGui()const
 				b.set_static(!b.m_is_static);
 
 			ImGui::NewLine();
-			ImGui::InputFloat3("Linear M", &b.m_position.x);
-			ImGui::InputFloat3("Angular M", &b.m_position.x);
+			ImGui::InputFloat3("Linear M", &b.m_linear_momentum.x);
+			ImGui::InputFloat3("Angular M", &b.m_angular_momentum.x);
 			ImGui::InputFloat("Mass", &b.m_inv_mass);
 			
 			ImGui::NewLine();

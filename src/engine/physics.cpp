@@ -161,9 +161,13 @@ bool c_physics::collision_narrow(overlap_pair * pair) const
 **/
 void c_physics::update()
 {
-	physics_dt = static_cast<float>(window.m_dt);
+	physics_dt = 1.f / 60.f;// static_cast<float>(window.m_dt);
 
 	std::vector<overlap_pair*> contacts;
+
+	// Add Gravity
+	for (auto& b : m_bodies)
+		b.integrate_velocities(physics_dt, m_gravity);
 
 	// Detect Collision
 	for (uint i = 0; i < m_bodies.size() - 1; ++i)
@@ -183,12 +187,8 @@ void c_physics::update()
 		}
 	}
 
-	// Add Gravity
-	for (auto& b : m_bodies)
-			b.integrate_velocities(physics_dt, m_gravity);
-
 	// Solve Velocity Contraints
-	constraint_contact_solver{8, 0.00f, 0.5f}.evaluate(contacts);
+	constraint_contact_solver{8, 0.01f, 0.3f}.evaluate(contacts);
 	for (auto o : contacts)
 	for (auto p : o->m_manifold.m_points)
 	{

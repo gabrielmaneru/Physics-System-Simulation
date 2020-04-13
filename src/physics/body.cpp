@@ -6,23 +6,33 @@
  * @copyright Copyright (C) 2020 DigiPen Institute of Technology.
 **/
 #include "body.h"
+#include "math_utils.h"
 float physics_dt = 1.f/60.f;
+
+glm::vec3 check_zero(glm::vec3 v)
+{
+	const glm::vec3 v_abs = glm::abs(v);
+	glm::vec3 r;
+	for (int i = 0; i < 3; ++i)
+		r[i] = v_abs[i] < c_epsilon ? 0.0f : v[i];
+	return r;
+}
 
 void body::add_impulse(glm::vec3 impulse, glm::vec3 point)
 {
 	if (!m_is_static)
 	{
-		glm::vec3 R = point - m_position;
-	
-		m_linear_momentum += impulse;
-		m_angular_momentum += glm::cross(R, impulse);
+		if (std::abs(impulse.x) > c_epsilon
+		|| std::abs(m_linear_momentum.x) > c_epsilon)
+			m_linear_momentum += impulse;
+
+		m_linear_momentum = check_zero(m_linear_momentum + impulse);
+
+		const glm::vec3 R = point - m_position;
+		m_angular_momentum = check_zero(m_angular_momentum + glm::cross(R, impulse));
 	}
 }
-void body::add_impulse(glm::vec3 impulse)
-{
-	if (!m_is_static)
-		m_linear_momentum += impulse;
-}
+
 void body::integrate_velocities(const float dt, const glm::vec3& gravity)
 {
 	if (!m_is_static)

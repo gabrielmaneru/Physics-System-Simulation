@@ -11,7 +11,6 @@
 struct body
 {
 	void add_impulse(glm::vec3 force, glm::vec3 point);
-	void add_impulse(glm::vec3 force);
 	void integrate_velocities(const float dt, const glm::vec3& gravity);
 	void integrate_positions(const float dt);
 	body& set_position(glm::vec3 pos);
@@ -43,7 +42,7 @@ struct body
 	float m_angular_damping{ 0.1f };
 	float m_friction_coef{ 0.00f };
 	float m_rolling_coef{ 0.00f };
-	float m_bounciness_coef{ 0.1f };
+	float m_bounciness_coef{ 0.3f };
 };
 
 extern float physics_dt;
