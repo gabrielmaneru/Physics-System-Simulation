@@ -17,19 +17,15 @@ glm::vec3 check_zero(glm::vec3 v)
 		r[i] = v_abs[i] < c_epsilon ? 0.0f : v[i];
 	return r;
 }
-
 void body::add_impulse(glm::vec3 impulse, glm::vec3 point)
 {
 	if (!m_is_static)
 	{
-		if (std::abs(impulse.x) > c_epsilon
-		|| std::abs(m_linear_momentum.x) > c_epsilon)
-			m_linear_momentum += impulse;
-
 		m_linear_momentum = check_zero(m_linear_momentum + impulse);
 
 		const glm::vec3 R = point - m_position;
-		m_angular_momentum = check_zero(m_angular_momentum + glm::cross(R, impulse));
+		auto t = m_angular_momentum + glm::cross(R, impulse);
+		m_angular_momentum = check_zero(t);
 	}
 }
 
