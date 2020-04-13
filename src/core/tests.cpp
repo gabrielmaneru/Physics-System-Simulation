@@ -162,7 +162,7 @@ TEST(naive_solver, simple_test)
 	c.m_pi_A = c.m_pi_B = a.m_position - c.m_normal*5.0f;
 	
 	naive_contact_solver{}.evaluate(cts);
-	ASSERT_NEAR(c.m_impulse, glm::sqrt(2.0f), 0.001f);
+	ASSERT_NEAR(c.lambda_Vel, glm::sqrt(2.0f), 0.001f);
 	
 	ASSERT_TRUE(glm::all(glm::epsilonEqual(a.get_linear_velocity(), { 1, 0, 0 }, 0.001f)));
 	ASSERT_TRUE(glm::all(glm::epsilonEqual(a.get_angular_velocity(), { 0, 0, 0 }, 0.001f)));
@@ -192,7 +192,7 @@ TEST(constraint_solver, circle_single)
 		contact_point c{ &bodies[0], &bodies[1] };
 		// And the normal is facing upwards
 		c.m_normal = { 0, 1, 0 };
-		c.m_depth = 0.0f;
+		c.depth = 0.0f;
 		// Collision point is just below the body
 		c.m_pi_A = c.m_pi_B = bodies[1].m_position + glm::vec3(0, -0.5f, 0);
 		contacts.push_back(c);
@@ -203,7 +203,7 @@ TEST(constraint_solver, circle_single)
 
 	// Ensure correct impulse
 	float supporting_mass = bodies[1].get_mass();
-	ASSERT_NEAR(contacts[0].m_impulse, supporting_mass * 9.8f, 0.0001f);
+	ASSERT_NEAR(contacts[0].lambda_Vel, supporting_mass * 9.8f, 0.0001f);
 
 	// Ensure velocity cancelation
 	body& body = *contacts[0].m_body_B;
@@ -243,7 +243,7 @@ TEST(constraint_solver, circle_stack)
 		contact_point c{ &bodies[i - 1],&b };
 		// And the normal is facing upwards
 		c.m_normal = { 0, 1, 0 };
-		c.m_depth = 0.0f;
+		c.depth = 0.0f;
 		// Collision point is just below the body
 		c.m_pi_A = c.m_pi_B = b.m_position + glm::vec3(0, -0.5f, 0);
 
@@ -257,7 +257,7 @@ TEST(constraint_solver, circle_stack)
 	for (size_t i = 0; i < contacts.size(); ++i) {
 		// Ensure correct impulse
 		float supporting_mass = std::accumulate(bodies.begin() + i + 1, bodies.end(), 0.0f, [&](float acc, const body& body) { return acc + body.get_mass(); });
-		ASSERT_NEAR(contacts[i].m_impulse, supporting_mass * spd, 0.1f);
+		ASSERT_NEAR(contacts[i].lambda_Vel, supporting_mass * spd, 0.1f);
 
 		// Ensure velocity cancelation
 		body& b = *contacts[i].m_body_B;
@@ -290,7 +290,7 @@ TEST(constraint_solver, circle_single_restitution)
 		contact_point c{ &bodies[0], &bodies[1] };
 		// And the normal is facing upwards
 		c.m_normal = { 0, 1, 0 };
-		c.m_depth = 0.0f;
+		c.depth = 0.0f;
 		// Collision point is just below the body
 		c.m_pi_A = c.m_pi_B = bodies[1].m_position + glm::vec3(0, -0.5f, 0);
 		contacts.push_back(c);

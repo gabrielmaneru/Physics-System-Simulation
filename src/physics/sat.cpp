@@ -236,14 +236,14 @@ simple_manifold sat::generate_manifold(const penetration_data & data)
 
 		// Create contact point
 		contact_point point;
-		point.m_local_A = edge1_closestlocal;
-		point.m_local_B = edge2_closest;
-		point.m_depth = data.m_penetration;
+		point.local_A = edge1_closestlocal;
+		point.local_B = edge2_closest;
+		point.depth = data.m_penetration;
 
 		// Create contact manifold
 		simple_manifold manifold;
-		manifold.m_normal = normalW;
-		manifold.m_points.push_back(point);
+		manifold.normal = normalW;
+		manifold.points.push_back(point);
 		return manifold;
 	}
 
@@ -300,7 +300,7 @@ simple_manifold sat::generate_manifold(const penetration_data & data)
 
 		// Create contact manifold
 		simple_manifold manifold;
-		manifold.m_normal = normalW;
+		manifold.normal = normalW;
 
 		for (auto v : clipVertices)
 		{
@@ -312,14 +312,14 @@ simple_manifold sat::generate_manifold(const penetration_data & data)
 				const glm::vec3 pointRef = project_point_plane(v, axisRef, vtxRef);
 
 				contact_point point;
-				point.m_local_A = actor_is_A ? pointRef : pointInc;
-				point.m_local_B = actor_is_A ? pointInc : pointRef;
-				point.m_depth = penetration;
+				point.local_A = actor_is_A ? pointRef : pointInc;
+				point.local_B = actor_is_A ? pointInc : pointRef;
+				point.depth = penetration;
 
-				manifold.m_points.push_back(point);
+				manifold.points.push_back(point);
 			}
 		}
-		if (manifold.m_points.size() == 0u)
+		if (manifold.points.size() == 0u)
 		{
 			for (auto v : clipVertices)
 			{
@@ -331,15 +331,15 @@ simple_manifold sat::generate_manifold(const penetration_data & data)
 					const glm::vec3 pointRef = project_point_plane(v, axisRef, vtxRef);
 
 					contact_point point;
-					point.m_local_A = actor_is_A ? pointRef : pointInc;
-					point.m_local_B = actor_is_A ? pointInc : pointRef;
-					point.m_depth = penetration;
+					point.local_A = actor_is_A ? pointRef : pointInc;
+					point.local_B = actor_is_A ? pointInc : pointRef;
+					point.depth = penetration;
 
-					manifold.m_points.push_back(point);
+					manifold.points.push_back(point);
 				}
 			}
 		}
-		assert(manifold.m_points.size()>0u);
+		assert(manifold.points.size()>0u);
 		return manifold;
 	}
 }

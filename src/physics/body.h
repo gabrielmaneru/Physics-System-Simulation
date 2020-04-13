@@ -10,7 +10,9 @@
 
 struct body
 {
-	void add_impulse(glm::vec3 force, glm::vec3 point);
+	void add_impulse(glm::vec3 impulse, glm::vec3 point);
+	void add_impulse_angular(glm::vec3 impulse);
+	void add_impulse_linear(glm::vec3 impulse);
 	void integrate_velocities(const float dt, const glm::vec3& gravity);
 	void integrate_positions(const float dt);
 	body& set_position(glm::vec3 pos);
@@ -38,11 +40,11 @@ struct body
 	bool	  m_is_static{ false };
 	float     m_inv_mass{ 1.0f };
 	glm::mat3 m_inv_inertia{ 1.0f };
-	float m_linear_damping{ 0.1f };
-	float m_angular_damping{ 0.1f };
-	float m_friction_coef{ 0.00f };
-	float m_rolling_coef{ 0.00f };
-	float m_bounciness_coef{ 0.3f };
+	float m_linear_damping{ 0.05f };
+	float m_angular_damping{ 0.05f };
+	float m_friction_coef{ 1.0f };
+	float m_roll_coef{ 0.05f };
+	float m_restitution_coef{ 0.2f };
 };
 
 extern float physics_dt;

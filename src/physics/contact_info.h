@@ -7,36 +7,48 @@ struct physical_mesh;
 
 struct contact_point
 {
-	glm::vec3 m_local_A;
-	glm::vec3 m_local_B;
-	float m_depth;
-	float m_impulse{ 0.0f };
+	glm::vec3 local_A;
+	glm::vec3 local_B;
+	float depth;
 
-	glm::vec3 m_pA;
-	glm::vec3 m_pB;
-	glm::vec3 m_rA;
-	glm::vec3 m_rB;
-	glm::vec3 m_iAxrAxN;
-	glm::vec3 m_iBxrBxN;
-	float m_invEffMass;
-	float m_restitutionBias;
+	glm::vec3 point_A;
+	glm::vec3 point_B;
+	float lambda_Vel{ 0.0f };
+	float invM_Vel;
+	float restitution_bias;
 };
 
 struct simple_manifold
 {
-	glm::vec3 m_normal;
-	std::vector<contact_point> m_points;
+	glm::vec3 normal;
+	std::vector<contact_point> points;
 };
 struct contact_manifold : public simple_manifold
 {
-	float m_friction_coef;
-	float m_rolling_coef;
-	float m_restitution_coef;
+	float coef_friction;
+	float coef_roll;
+	float coef_restitution;
 
-	float m_invM_A;
-	float m_invM_B;
-	glm::mat3 m_invI_A;
-	glm::mat3 m_invI_B;
+	glm::mat3 invI_A;
+	glm::mat3 invI_B;
+	float     invM_A;
+	float     invM_B;
+	float     invM_U;
+	float     invM_V;
+	float     invM_Twist;
+	glm::mat3 invM_Roll;
+
+	float     lambda_U{0.0f};
+	float     lambda_V{0.0f};
+	float     lambda_Twist{0.0f};
+	glm::vec3 lambda_Roll{0.0f, 0.0f, 0.0f};
+
+	glm::vec3 avg_point_A;
+	glm::vec3 avg_point_B;
+	glm::vec3 vec_U;
+	glm::vec3 vec_V;
+	glm::vec3 oldvec_U;
+	glm::vec3 oldvec_V;
 };
 
 struct overlap_pair

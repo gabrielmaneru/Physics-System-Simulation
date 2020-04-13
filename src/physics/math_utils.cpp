@@ -135,3 +135,34 @@ glm::vec3 project_point_plane(const glm::vec3 & point, const glm::vec3 & normal,
 {
 	return point - glm::dot(normal, point - plane_p)*normal;
 }
+
+glm::vec3 make_ortho(const glm::vec3 n)
+{
+	const glm::vec3 n_abs = glm::abs(n);
+
+	int min;
+	if (n_abs.x < n_abs.z)
+	{
+		if (n_abs.x < n_abs.y)
+			min = 0;
+		else
+			min = 1;
+	}
+	else
+	{
+		if (n_abs.y < n_abs.z)
+			min = 1;
+		else
+			min = 2;
+	}
+
+	switch (min)
+	{
+	case 0:
+		return glm::normalize(glm::vec3(0.0f, -n.z, n.y));
+	case 1:
+		return glm::normalize(glm::vec3(-n.z, 0.0f, n.x));
+	case 2:
+		return glm::normalize(glm::vec3(-n.y, n.x, 0.0f));
+	}
+}

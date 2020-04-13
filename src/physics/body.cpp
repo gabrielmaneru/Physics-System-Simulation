@@ -19,14 +19,22 @@ glm::vec3 check_zero(glm::vec3 v)
 }
 void body::add_impulse(glm::vec3 impulse, glm::vec3 point)
 {
-	if (!m_is_static)
-	{
-		m_linear_momentum = check_zero(m_linear_momentum + impulse);
+	add_impulse_linear(impulse);
 
-		const glm::vec3 R = point - m_position;
-		auto t = m_angular_momentum + glm::cross(R, impulse);
-		m_angular_momentum = check_zero(t);
-	}
+	const glm::vec3 R = point - m_position;
+	add_impulse_angular(glm::cross(R, impulse));
+}
+
+void body::add_impulse_angular(glm::vec3 impulse)
+{
+	if (!m_is_static)
+		m_angular_momentum = check_zero(m_angular_momentum + impulse);
+}
+
+void body::add_impulse_linear(glm::vec3 impulse)
+{
+	if (!m_is_static)
+		m_linear_momentum = check_zero(m_linear_momentum + impulse);
 }
 
 void body::integrate_velocities(const float dt, const glm::vec3& gravity)
@@ -101,6 +109,9 @@ glm::mat3 body::get_oriented_invinertia() const
 }
 body & body::set_static(bool is_static)
 {
+	m_roll_coef = 0.0f;
+	m_restitution_coef = 0.0f;
+	m_friction_coef = 0.0f;
 	m_is_static = is_static;
 	clear_momentum();
 	return *this;
