@@ -54,11 +54,13 @@ sat::result sat::test_collision()
 	if (edge_pen.m_penetration * 1.005 + 0.005 < min_penetration.m_penetration)
 		min_penetration = edge_pen;
 
+	if (min_penetration.m_penetration == FLT_MAX)
+		return {};
 
 	// TODO : Cach minimum penetration info
 
 	// return manifold
-	return { true, generate_manifold(min_penetration) };
+	return generate_manifold(min_penetration);
 }
 
 
@@ -207,7 +209,7 @@ float sat::compute_edge_penetration(const glm::vec3 & edge1_start, const glm::ve
 
 }
 
-simple_manifold sat::generate_manifold(const penetration_data & data)
+sat::result sat::generate_manifold(const penetration_data & data)
 {
 	// If we have and edge vs edge
 	if (data.m_actor == actor::Edge)
@@ -244,7 +246,7 @@ simple_manifold sat::generate_manifold(const penetration_data & data)
 		simple_manifold manifold;
 		manifold.normal = normalW;
 		manifold.points.push_back(point);
-		return manifold;
+		return {true, manifold };
 	}
 
 	// If the axis is a face normal
@@ -320,26 +322,7 @@ simple_manifold sat::generate_manifold(const penetration_data & data)
 			}
 		}
 		if (manifold.points.size() == 0u)
-		{
-			for (auto v : clipVertices)
-			{
-				const float penetration = glm::dot(vtxRef - v, axisRef);
-
-				if (penetration >= 0.0f)
-				{
-					const glm::vec3 pointInc = tr_point(trRefToInc, v);
-					const glm::vec3 pointRef = project_point_plane(v, axisRef, vtxRef);
-
-					contact_point point;
-					point.local_A = actor_is_A ? pointRef : pointInc;
-					point.local_B = actor_is_A ? pointInc : pointRef;
-					point.depth = penetration;
-
-					manifold.points.push_back(point);
-				}
-			}
-		}
-		assert(manifold.points.size()>0u);
-		return manifold;
+			return {};
+		return { true,manifold };
 	}
 }

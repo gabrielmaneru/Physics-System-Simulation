@@ -165,4 +165,15 @@ glm::vec3 make_ortho(const glm::vec3 n)
 	case 2:
 		return glm::normalize(glm::vec3(-n.y, n.x, 0.0f));
 	}
+	return{};
+}
+
+float rand01()
+{
+	return rand() / (float)RAND_MAX;
+}
+
+float rand(float a, float b)
+{
+	return a + (b - a)*rand01();
 }

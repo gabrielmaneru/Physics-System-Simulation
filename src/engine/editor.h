@@ -15,13 +15,19 @@ class c_editor
 	void reset_scene();
 	void draw_debug_bodies()const;
 	void object_picking();
+
 	int m_selected{ -1 };
 	int m_hovered{ -1 };
+	int m_scene{ 0 };
+	float m_general_friction{ 0.0f };
+	float m_general_restitution{ 0.0f };
+	float m_general_roll{ 0.0f };
+	float m_general_impulse{ 1.0f };
 
 public:
 	bool initialize();
 	void update();
-	void drawGui()const;
+	void drawGui();
 	void shutdown();
 	static c_editor& get_instance();
 };

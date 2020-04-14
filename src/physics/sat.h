@@ -49,5 +49,5 @@ private:
 	bool test_gaussmap_intersect(const glm::vec3& a, const glm::vec3& b, const glm::vec3& c, const glm::vec3& d, const glm::vec3& bCrossA, const glm::vec3& dCrossC)const;
 	float compute_edge_penetration(const glm::vec3& edge1_start, const glm::vec3& edge2_start, const glm::vec3& centroidA, const glm::vec3& edge1_dir, const glm::vec3& edge2_dir);
 
-	simple_manifold generate_manifold(const penetration_data& data);
+	result generate_manifold(const penetration_data& data);
 };

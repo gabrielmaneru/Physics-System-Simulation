@@ -18,3 +18,6 @@ std::vector<glm::vec3> clip(const std::vector<glm::vec3>& vertices, const std::v
 glm::vec3 project_point_plane(const glm::vec3& point, const glm::vec3& normal, const glm::vec3& plane_p);
 
 glm::vec3 make_ortho(const glm::vec3 n);
+
+float rand01();
+float rand(float a, float b);

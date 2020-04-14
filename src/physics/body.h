@@ -24,6 +24,9 @@ struct body
 	glm::mat3 get_local_invinertia()const;
 	glm::mat3 get_oriented_invinertia()const;
 	body& set_static(bool is_static);
+	body& set_friction(float f);
+	body& set_roll(float r);
+	body& set_restitution(float r);
 	void clear_momentum();
 
 	glm::mat4 get_model()const;
@@ -42,8 +45,8 @@ struct body
 	glm::mat3 m_inv_inertia{ 1.0f };
 	float m_linear_damping{ 0.05f };
 	float m_angular_damping{ 0.05f };
-	float m_friction_coef{ 1.0f };
-	float m_roll_coef{ 0.05f };
+	float m_friction_coef{ 0.00f };
+	float m_roll_coef{ 0.00f };
 	float m_restitution_coef{ 0.2f };
 };
 

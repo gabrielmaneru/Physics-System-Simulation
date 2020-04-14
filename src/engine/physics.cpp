@@ -188,7 +188,7 @@ void c_physics::update()
 	}
 
 	// Solve Velocity Contraints
-	constraint_contact_solver{20, 0.2f, 0.3f}.evaluate(contacts);
+	constraint_contact_solver{20, 0.2f}.evaluate(contacts);
 	for (auto o : contacts)
 	for (auto p : o->m_manifold.points)
 	{
@@ -213,6 +213,7 @@ void c_physics::clean()
 {
 	m_bodies.clear();
 	m_meshes.clear();
+	m_overlaps.clear();
 }
 
 /**

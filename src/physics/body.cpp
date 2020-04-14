@@ -109,11 +109,23 @@ glm::mat3 body::get_oriented_invinertia() const
 }
 body & body::set_static(bool is_static)
 {
-	m_roll_coef = 0.0f;
-	m_restitution_coef = 0.0f;
-	m_friction_coef = 0.0f;
 	m_is_static = is_static;
 	clear_momentum();
+	return *this;
+}
+body & body::set_friction(float f)
+{
+	m_friction_coef = f;
+	return *this;
+}
+body & body::set_roll(float r)
+{
+	m_roll_coef = r;
+	return *this;
+}
+body & body::set_restitution(float r)
+{
+	m_restitution_coef = r;
 	return *this;
 }
 void body::clear_momentum()
