@@ -5,20 +5,20 @@
 overlap_pair::overlap_pair(body * bA, body * bB, const physical_mesh * mA, const physical_mesh * mB)
 	:m_body_A(bA),m_body_B(bB), m_mesh_A(mA), m_mesh_B(mB)
 {
-	m_manifold.coef_friction = std::sqrtf(bA->m_friction_coef * bB->m_friction_coef);
-	m_manifold.coef_roll = std::sqrtf(bA->m_roll_coef * bB->m_roll_coef);
-	m_manifold.coef_restitution = std::fmax(bA->m_restitution_coef, bB->m_restitution_coef);
-
-	m_manifold.invM_A = bA->get_invmass();
-	m_manifold.invM_B = bB->get_invmass();
-	m_manifold.invI_A = bA->get_oriented_invinertia();
-	m_manifold.invI_B = bB->get_oriented_invinertia();
 	m_manifold.oldvec_U = glm::zero<glm::vec3>();
 	m_manifold.oldvec_V = glm::zero<glm::vec3>();
 }
 
 void overlap_pair::update()
 {
+	m_manifold.coef_friction = std::sqrtf(m_body_A->m_friction_coef * m_body_B->m_friction_coef);
+	m_manifold.coef_roll = std::sqrtf(m_body_A->m_roll_coef * m_body_B->m_roll_coef);
+	m_manifold.coef_restitution = std::fmax(m_body_A->m_restitution_coef, m_body_B->m_restitution_coef);
+
+	m_manifold.invM_A = m_body_A->get_invmass();
+	m_manifold.invM_B = m_body_B->get_invmass();
+	m_manifold.invI_A = m_body_A->get_oriented_invinertia();
+	m_manifold.invI_B = m_body_B->get_oriented_invinertia();
 	// Get data
 	const glm::vec3 normal = m_manifold.normal;
 	const glm::vec3 Pos_A = m_body_A->m_position;
@@ -53,7 +53,7 @@ void overlap_pair::update()
 			+ m_manifold.invM_B
 			+ glm::dot(glm::cross(m_manifold.invI_A * rAxN, R_A), normal)
 			+ glm::dot(glm::cross(m_manifold.invI_B * rBxN, R_B), normal);
-		p.invM_Vel = eff_mass > 0.0f ? 1.f / eff_mass : 0.0f;
+		p.invM_Vel = eff_mass > 0.0f ? 1.f / (eff_mass * (float)m_manifold.points.size()) : 0.0f;
 
 
 		// Compute velocities at contact points

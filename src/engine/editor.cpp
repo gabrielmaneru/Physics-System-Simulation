@@ -88,19 +88,21 @@ void c_editor::create_scene() const
 	switch (m_scene)
 	{
 	case 0:
-		for (uint i = 0; i < 50u; ++i)
-			physics.add_body("cube.obj")
-				.set_position({ rand(-2.5f, 2.5f), rand(1.f, 20.f), rand(-2.5f, 2.5f) })
-				.set_rotation(glm::normalize(glm::quat{ glm::vec3{
-					rand(0.0f, glm::half_pi<float>()),
-					rand(0.0f, glm::half_pi<float>()),
-					rand(0.0f, glm::half_pi<float>())
-				}}))
-				.set_friction(m_general_friction)
-				.set_restitution(m_general_restitution)
-				.set_roll(m_general_roll)
-				.set_mass(1.0f);
+		physics.add_body("cube.obj")
+			.set_position({ 0.0f, 2.0f, 0.0f })
+			.set_friction(0.0f)
+			.set_restitution(0.2f)
+			.set_roll(0.0f);
+		
+		physics.add_body("cube.obj")
+			.set_position({ 0.0f, 1.0f, 0.0f })
+			.set_rotation(glm::quat{ glm::vec3{0.0f, glm::half_pi<float>(), 0.0f} })
+			.set_static(true)
+			.set_friction(0.0f)
+			.set_restitution(0.2f)
+			.set_roll(0.0f);
 	break;
+
 
 	case 1:
 	physics.add_body("cube.obj")
@@ -162,6 +164,7 @@ void c_editor::create_scene() const
 		.set_mass(1.0f);
 		break;
 
+
 	case 2:
 		for (float i = 0.0f; i <= 1.0f; i+=0.1f)
 		{
@@ -181,6 +184,21 @@ void c_editor::create_scene() const
 				.add_impulse_linear(glm::vec3(0.0f, 0.0f, m_general_impulse));
 		}
 		break;
+
+
+	case 3:
+		for (uint i = 0; i < 50u; ++i)
+			physics.add_body((i % 2 == 0) ? "cube.obj" : "sphere.obj")
+			.set_position({ rand(-2.5f, 2.5f), rand(1.f, 20.f), rand(-2.5f, 2.5f) })
+			.set_rotation(glm::normalize(glm::quat{ glm::vec3{
+				rand(0.0f, glm::half_pi<float>()),
+				rand(0.0f, glm::half_pi<float>()),
+				rand(0.0f, glm::half_pi<float>())
+			} }))
+			.set_friction(m_general_friction)
+			.set_restitution(m_general_restitution)
+			.set_roll(m_general_roll)
+			.set_mass(1.0f);
 	default:
 		break;
 	}
@@ -258,7 +276,8 @@ void c_editor::object_picking()
 				glm::vec3 force = glm::normalize(mouse_ray.m_direction);
 				if (input.is_key_down(GLFW_KEY_LEFT_SHIFT))
 					force *= 0.01f;
-				b.add_impulse_angular(glm::cross(info.m_pi-b.m_position,force));
+				b.add_impulse_angular(glm::cross(info.m_pi - b.m_position, 2.0f*force));
+				b.add_impulse(force, info.m_pi);
 			}
 			else
 				m_selected = m_hovered;
@@ -365,6 +384,7 @@ void c_editor::drawGui()
 		if (ImGui::Button("Scene 0")) { m_scene = 0; reset_scene(); }
 		if (ImGui::Button("Scene 1")) { m_scene = 1; reset_scene(); }
 		if (ImGui::Button("Scene 2")) { m_scene = 2; reset_scene(); }
+		if (ImGui::Button("Scene 3")) { m_scene = 3; reset_scene(); }
 
 		ImGui::SliderFloat("General Friction", &m_general_friction, 0.0f, 1.0f);
 		ImGui::SliderFloat("General Restitution", &m_general_restitution, 0.0f, 1.0f);

@@ -16,8 +16,8 @@ void constraint_contact_solver::evaluate(std::vector<overlap_pair*>& overlaps)
 			{
 				// At least one resting contact
 				resting_contact = true;
-
-
+			
+			
 				// Apply previous impulse
 				const glm::vec3 dir_impulse = p.lambda_Vel * manifold.normal;
 				pair->m_body_A->add_impulse(-dir_impulse, p.point_A);
@@ -29,6 +29,7 @@ void constraint_contact_solver::evaluate(std::vector<overlap_pair*>& overlaps)
 		}
 
 		// Apply previous friction & roll impulses
+
 		if (resting_contact)
 		{
 			// Compute previous impulse
@@ -101,6 +102,7 @@ void constraint_contact_solver::evaluate(std::vector<overlap_pair*>& overlaps)
 
 				// Compute Jv of the constraint
 				const float Jv_vel = glm::dot(vpB - vpA, n);
+
 				// Store previous state
 				const float old_lambda = point.lambda_Vel;
 				// Compute lambda differential
@@ -131,8 +133,8 @@ void constraint_contact_solver::evaluate(std::vector<overlap_pair*>& overlaps)
 			// Compute maximum friction limit
 			const float max_friction_lambda = manifold.coef_friction * accum_lambda;
 			const float max_roll_lambda = manifold.coef_roll * accum_lambda;
-
-
+			
+			
 			// Compute Jv of the constraint
 			const float     Jv_u     = glm::dot(vfB - vfA, manifold.vec_U);
 			const float     Jv_v     = glm::dot(vfB - vfA, manifold.vec_V);
@@ -158,8 +160,8 @@ void constraint_contact_solver::evaluate(std::vector<overlap_pair*>& overlaps)
 			delta_lambda_v     = manifold.lambda_V     - old_lambda_v;
 			delta_lambda_twist = manifold.lambda_Twist - old_lambda_twist;
 			delta_lambda_roll  = manifold.lambda_Roll  - old_lambda_roll;
-
-
+			
+			
 			// Compute friction impulses
 			const glm::vec3 impulse_linear
 				= delta_lambda_u * manifold.vec_U

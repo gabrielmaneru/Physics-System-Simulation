@@ -8,6 +8,7 @@ struct half_edge;
 struct sat
 {
 	enum class actor { A, B, Edge };
+
 	struct penetration_data
 	{
 		actor m_actor;
@@ -20,6 +21,7 @@ struct sat
 			}m_edges;
 		}m_pointers;
 	};
+
 	struct result
 	{
 		bool m_contact{ false };

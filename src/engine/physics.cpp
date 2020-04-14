@@ -189,6 +189,7 @@ void c_physics::update()
 
 	// Solve Velocity Contraints
 	constraint_contact_solver{20, 0.2f}.evaluate(contacts);
+
 	for (auto o : contacts)
 	for (auto p : o->m_manifold.points)
 	{
