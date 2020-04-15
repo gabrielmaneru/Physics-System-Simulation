@@ -166,7 +166,7 @@ void c_editor::create_scene() const
 
 
 	case 2:
-		for (float i = 0.0f; i <= 1.0f; i+=0.1f)
+		for (float i = 0.0f; i <= 1.0f; i += 0.1f)
 		{
 			physics.add_body("cube.obj")
 				.set_position({ -10.0f + 20.0f*i, 1.f, 0.0f })
@@ -185,8 +185,28 @@ void c_editor::create_scene() const
 		}
 		break;
 
-
 	case 3:
+		for (float i = 0.0f; i <= 1.0f; i += 0.1f)
+		{
+			physics.add_body("cube.obj")
+				.set_position({ -10.0f + 20.0f*i, 1.f, 0.0f })
+				.set_friction(m_general_friction*i)
+				.set_restitution(m_general_restitution*i)
+				.set_roll(m_general_roll*i)
+				.set_mass(1.0f)
+				.set_static(true);
+			physics.add_body("sphere.obj")
+				.set_position({ -10.0f + 20.0f*i, 2.f, 0.0f })
+				.set_friction(m_general_friction*i)
+				.set_restitution(m_general_restitution*i)
+				.set_roll(m_general_roll*i)
+				.set_mass(1.0f)
+				.add_impulse_linear(glm::vec3(0.0f, 0.0f, m_general_impulse));
+		}
+		break;
+
+
+	case 4:
 		for (uint i = 0; i < 50u; ++i)
 			physics.add_body((i % 2 == 0) ? "cube.obj" : "sphere.obj")
 			.set_position({ rand(-2.5f, 2.5f), rand(1.f, 20.f), rand(-2.5f, 2.5f) })
@@ -217,34 +237,24 @@ void c_editor::reset_scene()
 **/
 void c_editor::draw_debug_bodies()const
 {
-	float size = 20.0f;
-	drawer.add_debugline_cube(glm::vec3(0.0f), 0.1f, white);
-	drawer.add_debugline(glm::vec3(-size, 0.01f, 0.f), glm::vec3(size, 0.01f, 0.f), white);
-	drawer.add_debugline(glm::vec3(0.f, 0.01f, -size), glm::vec3(0.f, 0.01f, size), white);
-	for (float x = 1.0f; x <= size; x++)
-	{
-		drawer.add_debugline(glm::vec3(-x, 0.01f, -size), glm::vec3(-x, 0.01f, size), red);
-		drawer.add_debugline(glm::vec3( x, 0.01f, -size), glm::vec3( x, 0.01f, size), red);
-		drawer.add_debugline(glm::vec3(-size, 0.01f, -x), glm::vec3(size, 0.01f, -x), blue);
-		drawer.add_debugline(glm::vec3(-size, 0.01f,  x), glm::vec3(size, 0.01f,  x), blue);
-	}
-
 	for (uint i = 0; i < physics.m_bodies.size(); i++)
 	{
 		const physical_mesh& mesh = physics.m_meshes[i];
 		std::vector<glm::vec3> lines = mesh.get_lines();
-		std::vector<glm::vec3> tri = mesh.get_triangles();
+		std::pair<std::vector<glm::vec3>,
+			std::vector<glm::vec3> > tri = mesh.get_triangles();
 
 		const body& bdy = physics.m_bodies[i];
 		glm::mat4 m = bdy.get_model();
 		for (auto& p : lines)
 			p = tr_point(m, p);
-		for (auto& p : tri)
-			p = tr_point(m, p);
+		for (uint i = 0; i < tri.first.size(); ++i)
+			tri.first[i] = tr_point(m, tri.first[i]),
+			tri.second[i] = tr_vector(m, tri.second[i]);
 
 		glm::vec3 color = ((uint)m_hovered == i) ? magenta : black;
 		drawer.add_debugline_list(lines, color);
-		drawer.add_debugtri_list(tri, white);
+		drawer.add_debugtri_list(tri.first, tri.second, white);
 
 		drawer.add_debugline(bdy.m_position, bdy.m_position + bdy.m_linear_momentum, green);
 		drawer.add_debugline(bdy.m_position, bdy.m_position + bdy.m_angular_momentum, blue);
@@ -385,6 +395,7 @@ void c_editor::drawGui()
 		if (ImGui::Button("Scene 1")) { m_scene = 1; reset_scene(); }
 		if (ImGui::Button("Scene 2")) { m_scene = 2; reset_scene(); }
 		if (ImGui::Button("Scene 3")) { m_scene = 3; reset_scene(); }
+		if (ImGui::Button("Scene 4")) { m_scene = 4; reset_scene(); }
 
 		ImGui::SliderFloat("General Friction", &m_general_friction, 0.0f, 1.0f);
 		ImGui::SliderFloat("General Restitution", &m_general_restitution, 0.0f, 1.0f);

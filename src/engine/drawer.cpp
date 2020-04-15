@@ -28,7 +28,7 @@ bool c_drawer::initialize()
 	}
 	catch (const std::string & log) { std::cout << log; }
 	glEnable(GL_LINE_SMOOTH);
-	glEnable(GL_BLEND);
+	//glEnable(GL_BLEND);
 	glEnable(GL_CULL_FACE);
 	glEnable(GL_DEPTH_TEST);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -53,10 +53,12 @@ void c_drawer::render()
 		glBindBuffer(GL_ARRAY_BUFFER, m_tri.m_vbo);
 		glBufferData(GL_ARRAY_BUFFER, sizeof(debug_vertex)*m_debug_tri.size(), m_debug_tri.data(), GL_DYNAMIC_DRAW);
 
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(float), (void*)0);
 		glEnableVertexAttribArray(0);
-		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(float), (void*)(3 * sizeof(float)));
 		glEnableVertexAttribArray(1);
+		glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(float), (void*)(6 * sizeof(float)));
+		glEnableVertexAttribArray(2);
 
 		m_debug_shader->use();
 		m_debug_shader->set_uniform("vp", vp);
@@ -78,10 +80,12 @@ void c_drawer::render()
 		glBindBuffer(GL_ARRAY_BUFFER, m_line.m_vbo);
 		glBufferData(GL_ARRAY_BUFFER, sizeof(debug_vertex)*m_debug_lines.size(), m_debug_lines.data(), GL_DYNAMIC_DRAW);
 
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6*sizeof(float), (void*)0);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(float), (void*)0);
 		glEnableVertexAttribArray(0);
-		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6*sizeof(float), (void*)(3*sizeof(float)));
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(float), (void*)(3 * sizeof(float)));
 		glEnableVertexAttribArray(1);
+		glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(float), (void*)(6 * sizeof(float)));
+		glEnableVertexAttribArray(2);
 
 		m_debug_shader->use();
 		m_debug_shader->set_uniform("vp", vp);
@@ -146,10 +150,10 @@ void c_drawer::add_debugline_list(const std::vector<glm::vec3>& pts, glm::vec3 c
 		m_debug_lines.push_back({ p,color });
 }
 
-void c_drawer::add_debugtri_list(const std::vector<glm::vec3>& pts, glm::vec3 color)
+void c_drawer::add_debugtri_list(const std::vector<glm::vec3>& pts, const std::vector<glm::vec3>& norm, glm::vec3 color)
 {
-	for (auto p : pts)
-		m_debug_tri.push_back({ p,color });
+	for (uint i = 0; i < pts.size(); ++i)
+		m_debug_tri.push_back({ pts[i],color,norm[i] });
 }
 
 c_drawer & c_drawer::get_instance()

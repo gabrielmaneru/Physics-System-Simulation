@@ -234,9 +234,11 @@ std::vector<glm::vec3> physical_mesh::get_lines() const
 /**
  * Extract the triangles of the mesh
 **/
-std::vector<glm::vec3> physical_mesh::get_triangles() const
+std::pair<std::vector<glm::vec3>, std::vector<glm::vec3>> physical_mesh::get_triangles() const
 {
 	std::vector<glm::vec3> tri;
+	std::vector<glm::vec3> norm;
+
 	for (auto f : m_faces)
 	{
 		half_edge* hedge = f.m_hedge_start;
@@ -248,10 +250,14 @@ std::vector<glm::vec3> physical_mesh::get_triangles() const
 			tri.push_back(fan_0);
 			tri.push_back(m_vertices[hedge->get_start()]);
 			tri.push_back(m_vertices[hedge->get_end()]);
+			norm.push_back(glm::vec3(f.m_plane));
+			norm.push_back(glm::vec3(f.m_plane));
+			norm.push_back(glm::vec3(f.m_plane));
+
 			hedge = hedge->m_next;
 		} while (hedge != f.m_hedge_start);
 	}
-	return tri;
+	return { tri,norm };
 }
 /**
  * Extract the plane of a face

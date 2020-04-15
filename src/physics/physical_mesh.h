@@ -35,7 +35,8 @@ struct physical_mesh
 	void scale(float s);
 
 	std::vector<glm::vec3> get_lines()const;
-	std::vector<glm::vec3> get_triangles()const;
+	std::pair<std::vector<glm::vec3>,
+		std::vector<glm::vec3> > get_triangles()const;
 	glm::vec4 get_face_plane(const half_edge* hedge)const;
 	bool is_coplanar(const half_edge* hedge)const;
 	ray_info ray_cast(const ray& local_ray)const;

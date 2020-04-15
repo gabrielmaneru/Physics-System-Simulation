@@ -13,6 +13,7 @@ struct debug_vertex
 {
 	glm::vec3 m_pos;
 	glm::vec3 m_color;
+	glm::vec3 m_normal{0.0f, 0.0f, 0.0f};
 };
 struct debug_mesh
 {
@@ -38,7 +39,7 @@ public:
 	void add_debugline_parallelepiped(glm::vec3 p0, glm::vec3 v0, glm::vec3 v1, glm::vec3 v2, glm::vec3 color);
 	void add_debugline_cube(glm::vec3 p, float size, glm::vec3 color);
 	void add_debugline_list(const std::vector<glm::vec3>& pts, glm::vec3 color);
-	void add_debugtri_list(const std::vector<glm::vec3>& pts, glm::vec3 color);
+	void add_debugtri_list(const std::vector<glm::vec3>& pts, const std::vector<glm::vec3>& norm, glm::vec3 color);
 	static c_drawer& get_instance();
 
 	camera m_camera{};
