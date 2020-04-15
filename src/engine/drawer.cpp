@@ -7,6 +7,7 @@
 **/
 #include "drawer.h"
 #include "shader_program.h"
+#include "editor.h"
 #include <Windows.h>
 extern "C" { // Enable High performance GPU
 	_declspec(dllexport) DWORD NvOptimusEnablement = 0x00000001; }
@@ -28,15 +29,25 @@ bool c_drawer::initialize()
 	}
 	catch (const std::string & log) { std::cout << log; }
 	glEnable(GL_LINE_SMOOTH);
-	//glEnable(GL_BLEND);
 	glEnable(GL_CULL_FACE);
-	glEnable(GL_DEPTH_TEST);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	return true;
 }
 
 void c_drawer::render()
 {
+	if (editor.m_wireframe)
+	{
+		glEnable(GL_BLEND);
+		glDisable(GL_DEPTH_TEST);
+
+	}
+	else
+	{
+		glDisable(GL_BLEND);
+		glEnable(GL_DEPTH_TEST);
+	}
+
 	m_camera.update();
 	glClearColor(0.3f, 0.3f, 0.3f, 1.f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

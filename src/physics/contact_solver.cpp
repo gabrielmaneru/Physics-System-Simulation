@@ -12,7 +12,7 @@ void constraint_contact_solver::evaluate(std::vector<overlap_pair*>& overlaps)
 		for (auto& p : pair->m_manifold.points)
 		{
 			// Apply previous linear impulses
-			if (p.lambda_Vel > 0.0f)
+			if (m_warm_start && p.lambda_Vel > 0.0f)
 			{
 				// At least one resting contact
 				resting_contact = true;
@@ -30,7 +30,7 @@ void constraint_contact_solver::evaluate(std::vector<overlap_pair*>& overlaps)
 
 		// Apply previous friction & roll impulses
 
-		if (resting_contact)
+		if (m_warm_start && resting_contact)
 		{
 			// Compute previous impulse
 			const glm::vec3 old_friction_impulse

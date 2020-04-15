@@ -8,6 +8,7 @@
 #include "physics.h"
 #include "drawer.h"
 #include "window.h"
+#include "editor.h"
 #include <physics/sat.h>
 #include <physics/contact_solver.h>
 #include <physics/math_utils.h>
@@ -161,7 +162,7 @@ bool c_physics::collision_narrow(overlap_pair * pair) const
 **/
 void c_physics::update()
 {
-	physics_dt = 1.f / 60.f;// static_cast<float>(window.m_dt);
+	physics_dt = static_cast<float>(window.m_dt);
 
 	std::vector<overlap_pair*> contacts;
 
@@ -188,7 +189,7 @@ void c_physics::update()
 	}
 
 	// Solve Velocity Contraints
-	constraint_contact_solver{20, 0.2f}.evaluate(contacts);
+	constraint_contact_solver{editor.m_solver_iterations, editor.m_baumgarte, editor.m_do_warm_start}.evaluate(contacts);
 
 	for (auto o : contacts)
 	for (auto p : o->m_manifold.points)

@@ -19,12 +19,21 @@ class c_editor
 	int m_selected{ -1 };
 	int m_hovered{ -1 };
 	int m_scene{ 0 };
+
+	float m_floor_friction{ 0.0f };
+	float m_floor_restitution{ 0.0f };
+
 	float m_general_friction{ 0.0f };
 	float m_general_restitution{ 0.0f };
 	float m_general_roll{ 0.0f };
-	float m_general_impulse{ 1.0f };
+	float m_general_impulse{ 30.0f };
 
 public:
+	int m_solver_iterations{ 20 };
+	float m_baumgarte{ 0.05f };
+	bool m_do_warm_start{ true };
+	bool m_wireframe{ false };
+
 	bool initialize();
 	void update();
 	void drawGui();

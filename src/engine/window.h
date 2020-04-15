@@ -26,7 +26,7 @@ public:
 	static c_window& get_instance();
 
 	double m_dt{ 0.0f };
-	int m_width{1920};
-	int m_height{1080};
+	int m_width{3840};
+	int m_height{2160};
 };
 #define window c_window::get_instance()
