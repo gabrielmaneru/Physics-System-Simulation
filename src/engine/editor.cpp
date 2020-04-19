@@ -49,150 +49,52 @@ void c_editor::ImGui_Shutdown()const
 **/
 void c_editor::create_scene() const
 {
-	physics.add_body("cube.obj")
-		.set_position({ 0.0f, -20.0f, 0.0f })
-		.set_static(true)
-		.set_friction(m_floor_friction)
-		.set_restitution(m_floor_restitution);
-	physics.m_meshes.back().scale(40.f);
-	physics.add_body("cube.obj")
-		.set_position({ 40.0f, 0.0f, 0.0f })
-		.set_static(true)
-		.set_friction(m_floor_friction)
-		.set_restitution(m_floor_restitution);
-	physics.m_meshes.back().scale(40.f);
-	physics.add_body("cube.obj")
-		.set_position({ -40.0f, 0.0f, 0.0f })
-		.set_static(true)
-		.set_friction(m_floor_friction)
-		.set_restitution(m_floor_restitution);
-	physics.m_meshes.back().scale(40.f);
-	physics.add_body("cube.obj")
-		.set_position({ 0.0f, 0.0f, 40.0f })
-		.set_static(true)
-		.set_friction(m_floor_friction)
-		.set_restitution(m_floor_restitution);
-	physics.m_meshes.back().scale(40.f);
-	physics.add_body("cube.obj")
-		.set_position({ 0.0f, 0.0f, -40.0f })
-		.set_static(true)
-		.set_friction(m_floor_friction)
-		.set_restitution(m_floor_restitution);
-	physics.m_meshes.back().scale(40.f);
+	physics.add_body("cube.obj").set_position({ 0.0f,-20.0f, 0.0f }).set_static(true).set_friction(m_floor_friction).set_restitution(m_floor_restitution);
+	physics.add_body("cube.obj").set_position({ 40.0f, 0.0f, 0.0f }).set_static(true).set_friction(m_floor_friction).set_restitution(m_floor_restitution);
+	physics.add_body("cube.obj").set_position({-40.0f, 0.0f, 0.0f }).set_static(true).set_friction(m_floor_friction).set_restitution(m_floor_restitution);
+	physics.add_body("cube.obj").set_position({ 0.0f, 0.0f, 40.0f }).set_static(true).set_friction(m_floor_friction).set_restitution(m_floor_restitution);
+	physics.add_body("cube.obj").set_position({ 0.0f, 0.0f,-40.0f }).set_static(true).set_friction(m_floor_friction).set_restitution(m_floor_restitution);
+	physics.m_meshes[0].scale(40.f);
+	physics.m_meshes[1].scale(40.f);
+	physics.m_meshes[2].scale(40.f);
+	physics.m_meshes[3].scale(40.f);
+	physics.m_meshes[4].scale(40.f);
 
 	switch (m_scene)
 	{
 	case 0:
-		physics.add_body("cube.obj")
-			.set_position({ 0.0f, 2.0f, 0.0f })
-			.set_friction(m_general_friction)
-			.set_restitution(m_general_restitution);
-		
-		physics.add_body("cube.obj")
-			.set_position({ 0.0f, 1.0f, 0.0f })
-			.set_rotation(glm::quat{ glm::vec3{0.0f, glm::half_pi<float>(), 0.0f} })
-			.set_static(true)
-			.set_friction(m_general_friction)
-			.set_restitution(m_general_restitution);
+		physics.add_body("cube.obj").set_position({ 0.0f, 1.5f, 0.0f }).set_friction(m_general_friction).set_restitution(m_general_restitution);
+		physics.add_body("cube.obj").set_position({ 0.0f, 0.5f, 0.0f }).set_friction(m_general_friction).set_restitution(m_general_restitution);
 	break;
 
-
 	case 1:
-	physics.add_body("cube.obj")
-		.set_position({ 10.f, 0.5f, 0.0f })
-		.set_friction(m_general_friction)
-		.set_restitution(m_general_restitution)
-		.set_mass(1.0f)
-		.add_impulse_linear(glm::vec3(-m_general_impulse, 0.0f, 0.0f));
-	physics.add_body("cube.obj")
-		.set_position({ 0.f, 0.5f, 0.0f })
-		.set_friction(m_general_friction)
-		.set_restitution(m_general_restitution)
-		.set_mass(1.0f);
-	physics.add_body("cube.obj")
-		.set_position({ -1.f, 0.5f, 0.0f })
-		.set_friction(m_general_friction)
-		.set_restitution(m_general_restitution)
-		.set_mass(1.0f);
-	physics.add_body("cube.obj")
-		.set_position({ 10.f, 1.5f, 0.0f })
-		.set_friction(m_general_friction)
-		.set_restitution(m_general_restitution)
-		.set_mass(1.0f)
-		.add_impulse_linear(glm::vec3(-m_general_impulse, 0.0f, 0.0f));
-	physics.add_body("cube.obj")
-		.set_position({ 0.f, 1.5f, 0.0f })
-		.set_friction(m_general_friction)
-		.set_restitution(m_general_restitution)
-		.set_mass(1.0f);
-	physics.add_body("cube.obj")
-		.set_position({ -1.f, 1.5f, 0.0f })
-		.set_friction(m_general_friction)
-		.set_restitution(m_general_restitution)
-		.set_mass(1.0f);
-	physics.add_body("cube.obj")
-		.set_position({ 10.f, 2.5f, 0.0f })
-		.set_friction(m_general_friction)
-		.set_restitution(m_general_restitution)
-		.set_mass(1.0f)
-		.add_impulse_linear(glm::vec3(-m_general_impulse, 0.0f, 0.0f));
-	physics.add_body("cube.obj")
-		.set_position({ 0.f, 2.5f, 0.0f })
-		.set_friction(m_general_friction)
-		.set_restitution(m_general_restitution)
-		.set_mass(1.0f);
-	physics.add_body("cube.obj")
-		.set_position({ -1.f, 2.5f, 0.0f })
-		.set_friction(m_general_friction)
-		.set_restitution(m_general_restitution)
-		.set_mass(1.0f);
+		physics.add_body("cube.obj").set_position({10.f, 0.5f, 0.0f }).set_friction(m_general_friction).set_restitution(m_general_restitution).add_impulse_linear(glm::vec3(-m_general_impulse, 0.0f, 0.0f));
+		physics.add_body("cube.obj").set_position({ 0.f, 0.5f, 0.0f }).set_friction(m_general_friction).set_restitution(m_general_restitution);
+		physics.add_body("cube.obj").set_position({-1.f, 0.5f, 0.0f }).set_friction(m_general_friction).set_restitution(m_general_restitution);
+		physics.add_body("cube.obj").set_position({10.f, 1.5f, 0.0f }).set_friction(m_general_friction).set_restitution(m_general_restitution).add_impulse_linear(glm::vec3(-m_general_impulse, 0.0f, 0.0f));
+		physics.add_body("cube.obj").set_position({ 0.f, 1.5f, 0.0f }).set_friction(m_general_friction).set_restitution(m_general_restitution);
+		physics.add_body("cube.obj").set_position({-1.f, 1.5f, 0.0f }).set_friction(m_general_friction).set_restitution(m_general_restitution);
+		physics.add_body("cube.obj").set_position({10.f, 2.5f, 0.0f }).set_friction(m_general_friction).set_restitution(m_general_restitution).add_impulse_linear(glm::vec3(-m_general_impulse, 0.0f, 0.0f));
+		physics.add_body("cube.obj").set_position({ 0.f, 2.5f, 0.0f }).set_friction(m_general_friction).set_restitution(m_general_restitution);
+		physics.add_body("cube.obj").set_position({-1.f, 2.5f, 0.0f }).set_friction(m_general_friction).set_restitution(m_general_restitution);
 		break;
 
 
 	case 2:
 		for (float i = 0.0f; i <= 1.0f; i += 0.1f)
-		{
-			physics.add_body("cube.obj")
-				.set_position({ -10.0f + 20.0f*i, 1.f, 0.0f })
-				.set_friction(m_general_friction*i)
-				.set_restitution(m_general_restitution*i)
-				.set_mass(1.0f)
-				.set_static(true);
-			physics.add_body("cube.obj")
-				.set_position({ -10.0f + 20.0f*i, 2.f, 0.0f })
-				.set_friction(m_general_friction*i)
-				.set_restitution(m_general_restitution*i)
-				.set_mass(1.0f)
-				.add_impulse_linear(glm::vec3(0.0f, 0.0f, m_general_impulse));
-		}
+			physics.add_body("cube.obj").set_position({ -10.0f + 20.0f*i, 1.f, 0.0f }).set_friction(m_general_friction*i).set_restitution(m_general_restitution*i).set_static(true),
+			physics.add_body("cube.obj").set_position({ -10.0f + 20.0f*i, 2.f, 0.0f }).set_friction(m_general_friction*i).set_restitution(m_general_restitution*i).add_impulse_linear(glm::vec3(0.0f, 0.0f, m_general_impulse));
 		break;
 
 	case 3:
 		for (float i = 0.0f; i <= 1.0f; i += 0.1f)
-		{
-			physics.add_body("cube.obj")
-				.set_position({ -10.0f + 20.0f*i, 1.f, 0.0f })
-				.set_friction(m_general_friction)
-				.set_mass(1.0f)
-				.set_static(true);
-			physics.add_body("sphere.obj")
-				.set_position({ -10.0f + 20.0f*i, 2.f, 0.0f })
-				.set_friction(m_general_friction)
-				.set_roll(m_general_roll*i)
-				.set_mass(1.0f)
-				.add_impulse_linear(glm::vec3(0.0f, 0.0f, m_general_impulse));
-		}
+			physics.add_body( "cube.obj" ).set_position({ -10.0f + 20.0f*i, 1.f, 0.0f }).set_friction(m_general_friction).set_static(true),
+			physics.add_body("sphere.obj").set_position({ -10.0f + 20.0f*i, 2.f, 0.0f }).set_friction(m_general_friction).set_roll(m_general_roll*i).add_impulse_linear(glm::vec3(0.0f, 0.0f, m_general_impulse));
 		break;
 
 	case 4:
 		for (float i = 0.0f; i <= 15.0f; ++i)
-		{
-			physics.add_body("cube.obj")
-				.set_position({ 0.0f, + 0.5f+i, 0.0f })
-				.set_friction(m_general_friction*i)
-				.set_restitution(m_general_restitution*i)
-				.set_mass(1.0f);
-		}
+			physics.add_body("cube.obj").set_position({ 0.0f, 0.5f + i, 0.0f }).set_friction(m_general_friction*i).set_restitution(m_general_restitution*i);
 		break;
 
 	case 5:
@@ -206,8 +108,7 @@ void c_editor::create_scene() const
 			} }))
 			.set_friction(m_general_friction)
 			.set_restitution(m_general_restitution)
-			.set_roll((i % 2 == 0) ? 0.0f : m_general_roll)
-			.set_mass(1.0f);
+			.set_roll((i % 2 == 0) ? 0.0f : m_general_roll);
 	default:
 		break;
 	}
@@ -399,17 +300,70 @@ void c_editor::drawGui()
 
 	if (ImGui::Begin("Menu", nullptr))
 	{
-		if (ImGui::Button("Scene 0")) { m_scene = 0; reset_scene(); }
+		if (ImGui::Button("Scene 0"))
+		{
+			m_scene = 0;
+			m_floor_friction = 0.0f;
+			m_floor_restitution = 0.2f;
+			m_general_friction = 0.0f;
+			m_general_restitution = 0.2f;
+			reset_scene();
+		}
 		ImGui::SameLine();
-		if (ImGui::Button("Scene 1")) { m_scene = 1; reset_scene(); }
+		if (ImGui::Button("Scene 1"))
+		{
+			m_scene = 1;
+			m_floor_friction = 0.0f;
+			m_floor_restitution = 0.2f;
+			m_general_friction = 0.3f;
+			m_general_restitution = 0.2f;
+			m_general_impulse = 30.0f;
+			reset_scene();
+		}
 		ImGui::SameLine();
-		if (ImGui::Button("Scene 2")) { m_scene = 2; reset_scene(); }
+		if (ImGui::Button("Scene 2"))
+		{
+			m_scene = 2;
+			m_floor_friction = 0.3f;
+			m_floor_restitution = 0.2f;
+			m_general_friction = 1.0f;
+			m_general_restitution = 0.2f;
+			m_general_impulse = 2.5f;
+			reset_scene();
+		}
 		ImGui::SameLine();
-		if (ImGui::Button("Scene 3")) { m_scene = 3; reset_scene(); }
+		if (ImGui::Button("Scene 3"))
+		{
+			m_scene = 3;
+			m_floor_friction = 0.3f;
+			m_floor_restitution = 0.2f;
+			m_general_friction = 0.3f;
+			m_general_restitution = 0.2f;
+			m_general_roll = 0.1f;
+			m_general_impulse = 2.5f;
+			reset_scene();
+		}
 		ImGui::SameLine();
-		if (ImGui::Button("Scene 4")) { m_scene = 4; reset_scene(); }
+		if (ImGui::Button("Scene 4"))
+		{
+			m_scene = 4;
+			m_floor_friction = 0.0f;
+			m_floor_restitution = 0.0f;
+			m_general_friction = 0.3f;
+			m_general_restitution = 0.0f;
+			reset_scene();
+		}
 		ImGui::SameLine();
-		if (ImGui::Button("Scene 5")) { m_scene = 5; reset_scene(); }
+		if (ImGui::Button("Scene 5"))
+		{
+			m_scene = 5;
+			m_floor_friction = 0.3f;
+			m_floor_restitution = 0.2f;
+			m_general_friction = 0.3f;
+			m_general_restitution = 0.2f;
+			m_general_roll = 0.025f;
+			reset_scene();
+		}
 		ImGui::NewLine();
 		ImGui::SliderFloat("Floor Friction", &m_floor_friction, 0.0f, 1.0f);
 		ImGui::SliderFloat("Floor Restitution", &m_floor_restitution, 0.0f, 1.0f);
@@ -425,21 +379,20 @@ void c_editor::drawGui()
 		case 1:
 			ImGui::SliderFloat("General Friction", &m_general_friction, 0.0f, 1.0f);
 			ImGui::SliderFloat("General Restitution", &m_general_restitution, 0.0f, 1.0f);
-			ImGui::SliderFloat("General Impulse", &m_general_impulse, 0.0f, 100.0f);
+			ImGui::SliderFloat("General Impulse", &m_general_impulse, 0.0f, 50.0f);
 			break;
 
 
 		case 2:
 			ImGui::SliderFloat("General Friction", &m_general_friction, 0.0f, 1.0f);
 			ImGui::SliderFloat("General Restitution", &m_general_restitution, 0.0f, 1.0f);
-			ImGui::SliderFloat("General Impulse", &m_general_impulse, 0.0f, 100.0f);
+			ImGui::SliderFloat("General Impulse", &m_general_impulse, 0.0f, 5.0f);
 			break;
 
 		case 3:
 			ImGui::SliderFloat("General Friction", &m_general_friction, 0.0f, 1.0f);
-			ImGui::SliderFloat("General Restitution", &m_general_restitution, 0.0f, 1.0f);
 			ImGui::SliderFloat("General Roll", &m_general_roll, 0.0f, 1.0f);
-			ImGui::SliderFloat("General Impulse", &m_general_impulse, 0.0f, 100.0f);
+			ImGui::SliderFloat("General Impulse", &m_general_impulse, 0.0f, 5.0f);
 			break;
 
 		case 4:
