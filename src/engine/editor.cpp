@@ -111,6 +111,21 @@ void c_editor::create_scene() const
 			.set_friction(m_general_friction)
 			.set_restitution(m_general_restitution)
 			.set_roll((i % 2 == 0) ? 0.0f : m_general_roll);
+		break;
+
+	case 6:
+		// Create SAT debugging scene
+		physics.add_body("cube.obj").set_position({ 0.0f, 1.0f, 0.0f }).set_static(true);
+		physics.add_body("cube.obj").set_position({ 0.0f, 1.99f, 0.0f }).set_static(true);
+		physics.add_body("cube.obj").set_position({ 2.0f, 1.0f, 0.0f }).set_static(true);
+		physics.add_body("cube.obj").set_position({ 2.0f, 1.99f, 0.0f }).set_static(true).set_rotation(glm::normalize(glm::quat{ glm::vec3{0.0f,0.5f*glm::half_pi<float>(), 0.0f} }));
+		physics.add_body("cube.obj").set_position({ 4.0f, 1.0f, 0.0f }).set_static(true);
+		physics.add_body("cube.obj").set_position({ 4.0f, 2.19f, 0.0f }).set_static(true).set_rotation(glm::normalize(glm::quat{ glm::vec3{0.5f*glm::half_pi<float>(), 0.5f*glm::half_pi<float>(), 0.0f*glm::half_pi<float>()} }));
+		physics.add_body("cube.obj").set_position({ 6.0f, 1.0f, 0.0f }).set_static(true);
+		physics.add_body("cube.obj").set_position({ 6.0f, 2.27f, 0.0f }).set_static(true).set_rotation(glm::normalize(glm::quat{ glm::vec3{0.5f*glm::half_pi<float>(), 0.5f*glm::half_pi<float>(), 0.35f*glm::half_pi<float>()} }));
+		physics.add_body("cube.obj").set_position({ 8.0f, 1.0f, 0.0f }).set_static(true);
+		physics.add_body("cube.obj").set_position({ 9.0f, 2.27f, 0.0f }).set_static(true).set_rotation(glm::normalize(glm::quat{ glm::vec3{0.5f*glm::half_pi<float>(), -0.5f*glm::half_pi<float>(), 0.0f} }));
+		break;
 	}
 }
 void c_editor::reset_scene()
@@ -376,6 +391,11 @@ void c_editor::drawGui()
 			m_general_friction = 0.3f;
 			m_general_restitution = 0.2f;
 			m_general_roll = 0.025f;
+			reset_scene();
+		}
+		if (ImGui::Button("Scene 6"))
+		{
+			m_scene = 6;
 			reset_scene();
 		}
 		ImGui::NewLine();
