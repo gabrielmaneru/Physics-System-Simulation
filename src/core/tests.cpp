@@ -147,75 +147,74 @@ TEST(half_edge, half_edge_merge_coplanar_full_face)
 TEST(naive_solver, simple_test)
 {
 	body a;
-	a.m_linear_momentum = glm::vec3{ 0,-1,0 };
-	a.set_position(glm::vec3{});
-	a.set_mass(1.0f);
-	a.set_inertia(glm::mat3{ 1.0f });
+	a.set_static(true);
+	a.set_restitution(1.0f);
 
 	body b;
-	b.set_static(true);
+	b.m_linear_momentum = glm::vec3{ 0,-1,0 };
+	b.set_position(glm::vec3{});
+	b.set_inertia(glm::mat3{ 1.0f });
+	b.set_restitution(1.0f);
 
-	std::vector<contact_point> cts(1);
-	contact_point& c{ cts[0] };
-	c = { &a,&b };
-	c.m_normal = glm::normalize(glm::vec3{ 1,1,0 });
-	c.m_pi_A = c.m_pi_B = a.m_position - c.m_normal*5.0f;
+
+	overlap_pair pair{ &a, &b, nullptr, nullptr };
+	pair.manifold.normal = glm::normalize(glm::vec3{ 1,1,0 });
+	glm::vec3 pi = a.m_position - pair.manifold.normal*5.0f;
+	pair.manifold.points.emplace_back(contact_point{ pi,pi });
+	pair.update();
+	pair.manifold.points[0].invM_Vel = 2.0f;
 	
-	naive_contact_solver{}.evaluate(cts);
-	ASSERT_NEAR(c.lambda_Vel, glm::sqrt(2.0f), 0.001f);
+	std::vector<overlap_pair*> pairs{&pair};
+	constraint_contact_solver{ 1, 0.0f }.evaluate(pairs);
+	ASSERT_NEAR(pair.manifold.points[0].lambda_Vel, glm::sqrt(2.0f), 0.001f);
 	
-	ASSERT_TRUE(glm::all(glm::epsilonEqual(a.get_linear_velocity(), { 1, 0, 0 }, 0.001f)));
-	ASSERT_TRUE(glm::all(glm::epsilonEqual(a.get_angular_velocity(), { 0, 0, 0 }, 0.001f)));
-	ASSERT_TRUE(glm::all(glm::epsilonEqual(b.get_linear_velocity(), { 0, 0, 0 }, 0.001f)));
+	ASSERT_TRUE(glm::all(glm::epsilonEqual(b.get_linear_velocity(), { 1, 0, 0 }, 0.001f)));
 	ASSERT_TRUE(glm::all(glm::epsilonEqual(b.get_angular_velocity(), { 0, 0, 0 }, 0.001f)));
+	ASSERT_TRUE(glm::all(glm::epsilonEqual(a.get_linear_velocity(), { 0, 0, 0 }, 0.001f)));
+	ASSERT_TRUE(glm::all(glm::epsilonEqual(a.get_angular_velocity(), { 0, 0, 0 }, 0.001f)));
 }
 TEST(constraint_solver, circle_single)
 {
-	// Floor and 4 bodies
-	std::vector<body> bodies(2);
-	{
-		// Floor (made static)
-		bodies[0].set_static(true);
+	float spd = 0.1f;
+	
+	// Floor (made static)
+	body a;
+	a.set_static(true);
 
-		// Circle (made dynamic)
-		bodies[1].set_mass(1.0f);
-		bodies[1].set_inertia(glm::mat3{ 1.0f / 6.0f });
+	body b;
+		// Make dynamic
+		b.set_mass(1.0f);
+		b.set_inertia(glm::mat3{ 1.0f / 6.0f });
 		// Stack them (0.5, 1.5, 2.5, ...)
-		bodies[1].set_position(glm::vec3{ 0, 0.5f, 0 });
+		b.set_position(glm::vec3{ 0, 0.5f, 0 });
 		// Add them initial velocity (falling)
-		bodies[1].m_linear_momentum = { 0, -9.8f, 0 };
-	}
+		b.m_linear_momentum = { 0, -spd, 0 };
 
 	// Contacts
-	std::vector<contact_point> contacts;
-	{
-		contact_point c{ &bodies[0], &bodies[1] };
-		// And the normal is facing upwards
-		c.m_normal = { 0, 1, 0 };
-		c.depth = 0.0f;
-		// Collision point is just below the body
-		c.m_pi_A = c.m_pi_B = bodies[1].m_position + glm::vec3(0, -0.5f, 0);
-		contacts.push_back(c);
-	}
+	overlap_pair pair{ &a, &b, nullptr, nullptr };
+	pair.manifold.normal = { 0,1,0 };
+	pair.manifold.points.push_back(contact_point{ glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, -0.5f, 0.0f) });
+	pair.update();
+
+	std::vector<overlap_pair *> pairs { &pair };
 
 	// Solve
-	constraint_contact_solver{ 1, 0.0f, 0.0f }.evaluate(contacts);
+	constraint_contact_solver{ 256, 0.0f }.evaluate(pairs);
 
 	// Ensure correct impulse
-	float supporting_mass = bodies[1].get_mass();
-	ASSERT_NEAR(contacts[0].lambda_Vel, supporting_mass * 9.8f, 0.0001f);
+	float supporting_mass = b.get_mass();
+	ASSERT_NEAR(pair.manifold.points[0].lambda_Vel, supporting_mass * spd, 0.0001f);
 
 	// Ensure velocity cancelation
-	body& body = *contacts[0].m_body_B;
 	
-	ASSERT_NEAR(body.m_linear_momentum.y, 0.0f, 0.0001f);
-	ASSERT_NEAR(glm::length2(body.m_linear_momentum), 0.0f, 0.0001f);
-	ASSERT_NEAR(glm::length2(body.m_angular_momentum), 0.0f, 0.0001f);
+	ASSERT_NEAR(b.m_linear_momentum.y, 0.0f, 0.0001f);
+	ASSERT_NEAR(glm::length2(b.m_linear_momentum), 0.0f, 0.0001f);
+	ASSERT_NEAR(glm::length2(b.m_angular_momentum), 0.0f, 0.0001f);
 }
 #include <numeric>
 TEST(constraint_solver, circle_stack)
 {
-	float spd = 10.0f * physics_dt;
+	float spd = 0.1f;
 	// Floor and 4 bodies
 	std::vector<body> bodies(5);
 
@@ -236,31 +235,33 @@ TEST(constraint_solver, circle_stack)
 	}
 
 	// Contacts
-	std::vector<contact_point> contacts;
+	std::vector<overlap_pair> pair;
 	for (size_t i = 1; i < bodies.size(); ++i)
 	{
 		body&     b = bodies[i];
-		contact_point c{ &bodies[i - 1],&b };
-		// And the normal is facing upwards
-		c.m_normal = { 0, 1, 0 };
-		c.depth = 0.0f;
-		// Collision point is just below the body
-		c.m_pi_A = c.m_pi_B = b.m_position + glm::vec3(0, -0.5f, 0);
+		pair.push_back(overlap_pair{ &bodies[i - 1], &b, nullptr, nullptr });
+		pair.back().manifold.normal = { 0,1,0 };
+		pair.back().manifold.points.push_back(contact_point{ glm::vec3(0.0f, i == 1 ? 0.0 : 0.5, 0.0f), glm::vec3(0.0f, -0.5f, 0.0f) });
+		pair.back().update();
+	}
 
-		contacts.push_back(c);
+	std::vector<overlap_pair *> pairs;
+	for (int i = 0; i < pair.size(); ++i)
+	{
+		pairs.push_back(&pair[i]);
 	}
 
 	// Solve
-	constraint_contact_solver{ 64, 0.0f, 0.0f }.evaluate(contacts);
+	constraint_contact_solver{ 64, 0.0f }.evaluate(pairs);
 
 	// Ensure all bodies
-	for (size_t i = 0; i < contacts.size(); ++i) {
+	for (size_t i = 0; i < pair.size(); ++i) {
 		// Ensure correct impulse
 		float supporting_mass = std::accumulate(bodies.begin() + i + 1, bodies.end(), 0.0f, [&](float acc, const body& body) { return acc + body.get_mass(); });
-		ASSERT_NEAR(contacts[i].lambda_Vel, supporting_mass * spd, 0.1f);
+		ASSERT_NEAR(pair[i].manifold.points[0].lambda_Vel, supporting_mass * spd, 0.1f);
 
 		// Ensure velocity cancelation
-		body& b = *contacts[i].m_body_B;
+		body& b = *pair[i].body_B;
 		ASSERT_NEAR(b.m_linear_momentum.y, 0.0f, 0.001f);
 		ASSERT_NEAR(glm::length2(b.m_linear_momentum), 0.0f, 0.001f);
 		ASSERT_NEAR(glm::length2(b.m_angular_momentum), 0.0f, 0.001f);
@@ -269,39 +270,36 @@ TEST(constraint_solver, circle_stack)
 
 TEST(constraint_solver, circle_single_restitution)
 {
-	// Floor and 4 bodies
-	std::vector<body> bodies(2);
-	{
-		// Floor (made static)
-		bodies[0].set_static(true);
+	float spd = 9.8f;
 
-		// Circle (made dynamic)
-		bodies[1].set_mass(1.0f);
-		bodies[1].set_inertia(glm::mat3{ 1.0f / 6.0f });
-		// Stack them (0.5, 1.5, 2.5, ...)
-		bodies[1].set_position(glm::vec3{ 0, 0.5f, 0 });
-		// Add them initial velocity (falling)
-		bodies[1].m_linear_momentum = { 0, -9.8f, 0 };
-	}
+	// Floor (made static)
+	body a;
+	a.set_static(true);
+	a.set_restitution(1.0f);
+
+	body b;
+	// Make dynamic
+	b.set_mass(1.0f);
+	b.set_inertia(glm::mat3{ 1.0f / 6.0f });
+	// Stack them (0.5, 1.5, 2.5, ...)
+	b.set_position(glm::vec3{ 0, 0.5f, 0 });
+	// Add them initial velocity (falling)
+	b.m_linear_momentum = { 0, -spd, 0 };
+	b.set_restitution(1.0f);
 
 	// Contacts
-	std::vector<contact_point> contacts;
-	{
-		contact_point c{ &bodies[0], &bodies[1] };
-		// And the normal is facing upwards
-		c.m_normal = { 0, 1, 0 };
-		c.depth = 0.0f;
-		// Collision point is just below the body
-		c.m_pi_A = c.m_pi_B = bodies[1].m_position + glm::vec3(0, -0.5f, 0);
-		contacts.push_back(c);
-	}
+	overlap_pair pair{ &a, &b, nullptr, nullptr };
+	pair.manifold.normal = { 0,1,0 };
+	pair.manifold.points.push_back(contact_point{ glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, -0.5f, 0.0f) });
+	pair.update();
+
+	std::vector<overlap_pair *> pairs{ &pair };
 
 	// Solve
-	constraint_contact_solver{ 1, 0.0f, 1.0f }.evaluate(contacts);
+	constraint_contact_solver{ 1, 0.0f }.evaluate(pairs);
 
 	// Ensure velocity cancelation
-	body& body = *contacts[0].m_body_B;
-	ASSERT_NEAR(body.m_linear_momentum.y, 9.8f, 0.0001f);
-	ASSERT_NEAR(glm::length2(body.m_linear_momentum), 9.8f*9.8f, 0.0001f);
-	ASSERT_NEAR(glm::length2(body.m_angular_momentum), 0.0f, 0.0001f);
+	ASSERT_NEAR(b.m_linear_momentum.y, spd, 0.0001f);
+	ASSERT_NEAR(glm::length2(b.m_linear_momentum), spd*spd, 0.0001f);
+	ASSERT_NEAR(glm::length2(b.m_angular_momentum), 0.0f, 0.0001f);
 }

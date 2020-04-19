@@ -36,8 +36,8 @@ struct body
 	glm::vec3 get_angular_velocity()const;
 	glm::vec3 get_velocity_at_point(glm::vec3 point)const;
 
-	glm::vec3 m_position;
-	glm::quat m_rotation;
+	glm::vec3 m_position{0.0f, 0.0f, 0.0f};
+	glm::quat m_rotation{1.0f, 0.0f, 0.0f, 0.0f};
 	glm::vec3 m_linear_momentum{ 0.0f };
 	glm::vec3 m_angular_momentum{ 0.0f };
 	bool	  m_is_static{ false };
