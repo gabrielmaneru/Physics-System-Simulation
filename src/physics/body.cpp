@@ -27,12 +27,17 @@ void body::add_impulse(glm::vec3 impulse, glm::vec3 point)
 
 void body::add_impulse_angular(glm::vec3 impulse)
 {
+	//if(isnan(impulse.x) || isnan(impulse.y) || isnan(impulse.z))
+	//	m_angular_momentum = check_zero(m_angular_momentum + impulse);
+
 	if (!m_is_static)
 		m_angular_momentum = check_zero(m_angular_momentum + impulse);
 }
 
 void body::add_impulse_linear(glm::vec3 impulse)
 {
+	//if (isnan(impulse.x) || isnan(impulse.y) || isnan(impulse.z))
+	//	m_angular_momentum = check_zero(m_angular_momentum + impulse);
 	if (!m_is_static)
 		m_linear_momentum = check_zero(m_linear_momentum + impulse);
 }

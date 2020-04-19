@@ -1,27 +1,30 @@
 #pragma once
-#include "contact_info.h"
+#include <glm/glm.hpp>
+#include <vector>
 
 struct physical_mesh;
+struct body;
 struct face;
 struct half_edge;
+struct overlap_pair;
 
 struct sat
 {
-	enum class actor { A, B, Edge };
-
+	enum class actor { A, B, Edge, Null };
 	struct penetration_data
 	{
 		actor m_actor;
 		float m_penetration{ FLT_MAX };
-		union {
-			const face* m_face;
-			struct {
-				const half_edge* A;
-				const half_edge* B;
-			}m_edges;
-		}m_pointers;
+		const face* m_face{ nullptr };
+		const half_edge* m_edgeA{ nullptr };
+		const half_edge* m_edgeB{nullptr};
 	};
-
+	struct simple_manifold
+	{
+		glm::vec3 normal;
+		std::vector<glm::vec3> local_A;
+		std::vector<glm::vec3> local_B;
+	};
 	struct result
 	{
 		bool m_contact{ false };
@@ -41,6 +44,9 @@ private:
 	const glm::mat4 trBtoWorld;
 	const glm::mat4 trAtoB;;
 	const glm::mat4 trBtoA;
+	const bool was_colliding;
+	const penetration_data& prev_data;
+	penetration_data& next_data;
 
 	glm::vec3 edge_data[4];
 

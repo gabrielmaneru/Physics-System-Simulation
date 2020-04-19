@@ -185,7 +185,7 @@ void c_editor::create_scene() const
 		break;
 
 	case 4:
-		for (float i = 0.0f; i <= 20.0f; ++i)
+		for (float i = 0.0f; i <= 15.0f; ++i)
 		{
 			physics.add_body("cube.obj")
 				.set_position({ 0.0f, + 0.5f+i, 0.0f })
@@ -251,11 +251,11 @@ void c_editor::draw_debug_bodies()const
 		glm::mat4 m = bdy.get_model();
 		for (auto& p : lines)
 			p = tr_point(m, p);
-		for (uint i = 0; i < tri.first.size(); ++i)
-			tri.first[i] = tr_point(m, tri.first[i]),
-			tri.second[i] = tr_vector(m, tri.second[i]);
+		for (uint j = 0; j < tri.first.size(); ++j)
+			tri.first[j] = tr_point(m, tri.first[j]),
+			tri.second[j] = tr_vector(m, tri.second[j]);
 
-		glm::vec3 color = ((uint)m_hovered == i) ? magenta : black;
+		glm::vec3 color = ((uint)m_hovered == i) ? cyan : black;
 		drawer.add_debugline_list(lines, color);
 		drawer.add_debugtri_list(tri.first, tri.second, white);
 
@@ -463,7 +463,8 @@ void c_editor::drawGui()
 		default:
 			break;
 		}
-
+		ImGui::NewLine();
+		ImGui::Text(("FPS: " + std::to_string(1.0 / physics_dt) + " ( " + std::to_string(physics_dt)+ ")").c_str());
 		ImGui::End();
 	}
 

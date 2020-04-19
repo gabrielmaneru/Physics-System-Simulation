@@ -1,8 +1,10 @@
 #pragma once
+#include "sat.h"
 #include <glm/glm.hpp>
 #include <vector>
 
 struct body;
+struct physical_mesh;
 struct physical_mesh;
 
 struct contact_point
@@ -18,13 +20,11 @@ struct contact_point
 	float restitution_bias;
 };
 
-struct simple_manifold
+struct contact_manifold
 {
-	glm::vec3 normal;
+	glm::vec3 normal{ 0.0f, 0.0f, 0.0f };
 	std::vector<contact_point> points;
-};
-struct contact_manifold : public simple_manifold
-{
+
 	float coef_friction;
 	float coef_roll;
 	float coef_restitution;
@@ -43,28 +43,28 @@ struct contact_manifold : public simple_manifold
 	float     lambda_Twist{0.0f};
 	glm::vec3 lambda_Roll{0.0f, 0.0f, 0.0f};
 
-	glm::vec3 avg_point_A;
-	glm::vec3 avg_point_B;
-	glm::vec3 vec_U;
-	glm::vec3 vec_V;
-	glm::vec3 oldvec_U;
-	glm::vec3 oldvec_V;
+	glm::vec3 avg_point_A{ 0.0f, 0.0f, 0.0f };
+	glm::vec3 avg_point_B{ 0.0f, 0.0f, 0.0f };
+	glm::vec3 vec_U{ 0.0f, 0.0f, 0.0f };
+	glm::vec3 vec_V{ 0.0f, 0.0f, 0.0f };
+	glm::vec3 oldvec_U{ 0.0f, 0.0f, 0.0f };
+	glm::vec3 oldvec_V{ 0.0f, 0.0f, 0.0f };
 };
 
 struct overlap_pair
 {
-
 	enum class state {
 		New, NoCollision, Collision
 	}m_state{state::New};
-	body* m_body_A;
-	body* m_body_B;
-	const physical_mesh* m_mesh_A;
-	const physical_mesh* m_mesh_B;
-	contact_manifold m_manifold;
+	body* body_A;
+	body* body_B;
+	const physical_mesh* mesh_A;
+	const physical_mesh* mesh_B;
+	contact_manifold manifold;
+	mutable sat::penetration_data prev_data{sat::actor::Null};
 
 	overlap_pair() = default;
 	overlap_pair(body* bA, body* bB, const physical_mesh* mA, const physical_mesh* mB);
 	void update();
-	void add_manifold(const simple_manifold& other);
+	void add_manifold(const sat::simple_manifold& other);
 };

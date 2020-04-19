@@ -56,7 +56,7 @@ bool c_physics::collision_narrow(overlap_pair * pair) const
 	}
 	else
 	{
-		pair->m_manifold.points.clear();
+		pair->manifold.points.clear();
 		pair->m_state = overlap_pair::state::NoCollision;
 		return false;
 	}
@@ -192,14 +192,14 @@ void c_physics::update()
 	constraint_contact_solver{editor.m_solver_iterations, editor.m_baumgarte, editor.m_do_warm_start}.evaluate(contacts);
 
 	for (auto o : contacts)
-	for (auto p : o->m_manifold.points)
+	for (auto p : o->manifold.points)
 	{
-		const glm::vec3 pA = tr_point(o->m_body_A->get_model(), p.local_A);
-		const glm::vec3 pB = tr_point(o->m_body_B->get_model(), p.local_B);
+		const glm::vec3 pA = tr_point(o->body_A->get_model(), p.local_A);
+		const glm::vec3 pB = tr_point(o->body_B->get_model(), p.local_B);
 		drawer.add_debugline(pA, pB, red);
 		drawer.add_debugline_cube(pA, 0.1f, red);
 		drawer.add_debugline_cube(pB, 0.1f, blue);
-		drawer.add_debugline(pA, pA + o->m_manifold.normal * p.depth, green);
+		drawer.add_debugline(pA, pA + o->manifold.normal * p.depth, green);
 	}
 	contacts.clear();
 

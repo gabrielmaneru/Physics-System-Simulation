@@ -338,12 +338,12 @@ namespace ImGuizmo
 
    float matrix_t::Inverse(const matrix_t &srcMatrix, bool affine)
    {
-      float det = 0;
+      float det_temp = 0;
 
       if (affine)
       {
-         det = GetDeterminant();
-         float s = 1 / det;
+         det_temp = GetDeterminant();
+         float s = 1 / det_temp;
          m[0][0] = (srcMatrix.m[1][1] * srcMatrix.m[2][2] - srcMatrix.m[1][2] * srcMatrix.m[2][1]) * s;
          m[0][1] = (srcMatrix.m[2][1] * srcMatrix.m[0][2] - srcMatrix.m[2][2] * srcMatrix.m[0][1]) * s;
          m[0][2] = (srcMatrix.m[0][1] * srcMatrix.m[1][2] - srcMatrix.m[0][2] * srcMatrix.m[1][1]) * s;
@@ -419,17 +419,17 @@ namespace ImGuizmo
          m16[15] = (tmp[10] * src[10] + tmp[4] * src[8] + tmp[9] * src[9]) - (tmp[8] * src[9] + tmp[11] * src[10] + tmp[5] * src[8]);
 
          // calculate determinant
-         det = src[0] * m16[0] + src[1] * m16[1] + src[2] * m16[2] + src[3] * m16[3];
+         det_temp = src[0] * m16[0] + src[1] * m16[1] + src[2] * m16[2] + src[3] * m16[3];
 
          // calculate matrix inverse
-         float invdet = 1 / det;
+         float invdet = 1 / det_temp;
          for (int j = 0; j < 16; ++j)
          {
             m16[j] *= invdet;
          }
       }
 
-      return det;
+      return det_temp;
    }
 
    void matrix_t::RotationAxis(const vec_t & axis, float angle)

@@ -7,9 +7,9 @@ void constraint_contact_solver::evaluate(std::vector<overlap_pair*>& overlaps)
 	// Warm start from previous lambdas
 	for (auto& pair : overlaps)
 	{
-		contact_manifold& manifold = pair->m_manifold;
+		contact_manifold& manifold = pair->manifold;
 		bool resting_contact{ false };
-		for (auto& p : pair->m_manifold.points)
+		for (auto& p : pair->manifold.points)
 		{
 			// Apply previous linear impulses
 			if (m_warm_start && p.lambda_Vel > 0.0f)
@@ -20,8 +20,8 @@ void constraint_contact_solver::evaluate(std::vector<overlap_pair*>& overlaps)
 			
 				// Apply previous impulse
 				const glm::vec3 dir_impulse = p.lambda_Vel * manifold.normal;
-				pair->m_body_A->add_impulse(-dir_impulse, p.point_A);
-				pair->m_body_B->add_impulse(dir_impulse, p.point_B);
+				pair->body_A->add_impulse(-dir_impulse, p.point_A);
+				pair->body_B->add_impulse(dir_impulse, p.point_B);
 			}
 			// Reset previous lambdas
 			else
@@ -29,7 +29,6 @@ void constraint_contact_solver::evaluate(std::vector<overlap_pair*>& overlaps)
 		}
 
 		// Apply previous friction & roll impulses
-
 		if (m_warm_start && resting_contact)
 		{
 			// Compute previous impulse
@@ -44,20 +43,20 @@ void constraint_contact_solver::evaluate(std::vector<overlap_pair*>& overlaps)
 				= manifold.lambda_U * manifold.vec_U
 				+ manifold.lambda_V * manifold.vec_V;
 			// Apply previous impulse
-			pair->m_body_A->add_impulse(-friction_impulse, manifold.avg_point_A);
-			pair->m_body_B->add_impulse(friction_impulse, manifold.avg_point_B);
+			pair->body_A->add_impulse(-friction_impulse, manifold.avg_point_A);
+			pair->body_B->add_impulse(friction_impulse, manifold.avg_point_B);
 
 
 			// Compute previous twist impulse
 			const glm::vec3 friction_impulsetwist = manifold.lambda_Twist * manifold.normal;
 			// Apply previous twist impulse
-			pair->m_body_A->add_impulse_angular(-friction_impulsetwist);
-			pair->m_body_B->add_impulse_angular(friction_impulsetwist);
+			pair->body_A->add_impulse_angular(-friction_impulsetwist);
+			pair->body_B->add_impulse_angular(friction_impulsetwist);
 
 
 			// Apply previous roll impulse
-			pair->m_body_A->add_impulse_angular(-manifold.lambda_Roll);
-			pair->m_body_B->add_impulse_angular(manifold.lambda_Roll);
+			pair->body_A->add_impulse_angular(-manifold.lambda_Roll);
+			pair->body_B->add_impulse_angular(manifold.lambda_Roll);
 		}
 		// Reset previous lambdas
 		else
@@ -76,10 +75,10 @@ void constraint_contact_solver::evaluate(std::vector<overlap_pair*>& overlaps)
 		for (auto& pair : overlaps)
 		{
 			// Copy previous state data
-			const body bA{ *pair->m_body_A };
-			const body bB{ *pair->m_body_B };
+			const body bA{ *pair->body_A };
+			const body bB{ *pair->body_B };
 			// Get manifold data
-			contact_manifold& manifold = pair->m_manifold;
+			contact_manifold& manifold = pair->manifold;
 			const glm::vec3& n = manifold.normal;
 			// Accumulate linear penetration lambdas
 			float accum_lambda = 0.0;
@@ -119,8 +118,8 @@ void constraint_contact_solver::evaluate(std::vector<overlap_pair*>& overlaps)
 
 				// Apply delta impulse
 				const glm::vec3 dir_impulse = delta_lambda * n;
-				pair->m_body_A->add_impulse(-dir_impulse, point.point_A);
-				pair->m_body_B->add_impulse(dir_impulse, point.point_B);
+				pair->body_A->add_impulse(-dir_impulse, point.point_A);
+				pair->body_B->add_impulse(dir_impulse, point.point_B);
 			}
 
 
@@ -168,10 +167,10 @@ void constraint_contact_solver::evaluate(std::vector<overlap_pair*>& overlaps)
 				+ delta_lambda_v * manifold.vec_V;
 			const glm::vec3 impulse_angular = delta_lambda_twist * n + delta_lambda_roll;
 			// Apply impulses
-			pair->m_body_A->add_impulse(-impulse_linear, manifold.avg_point_A);
-			pair->m_body_B->add_impulse(impulse_linear, manifold.avg_point_B);
-			pair->m_body_A->add_impulse_angular(-impulse_angular);
-			pair->m_body_B->add_impulse_angular(impulse_angular);
+			pair->body_A->add_impulse(-impulse_linear, manifold.avg_point_A);
+			pair->body_B->add_impulse(impulse_linear, manifold.avg_point_B);
+			pair->body_A->add_impulse_angular(-impulse_angular);
+			pair->body_B->add_impulse_angular(impulse_angular);
 		}
 	}
 }

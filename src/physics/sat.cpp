@@ -6,21 +6,76 @@
 #include <glm/glm.hpp>
 
 sat::sat(const overlap_pair * pair)
-	: bA(pair->m_body_A), bB(pair->m_body_B),
-	mA(pair->m_mesh_A), mB(pair->m_mesh_B),
+:   bA(pair->body_A), bB(pair->body_B),
+	mA(pair->mesh_A), mB(pair->mesh_B),
 	trAtoWorld(bA->get_model()), trBtoWorld(bB->get_model()),
 	trAtoB(bB->get_invmodel() * bA->get_model()),
-	trBtoA(glm::inverse(trAtoB)) {}
+	trBtoA(glm::inverse(trAtoB)),
+	was_colliding{pair->m_state == overlap_pair::state::Collision},
+	prev_data{ pair->prev_data }, next_data{ pair->prev_data }
+{}
 
 sat::result sat::test_collision()
 {
-	// TODO : Check previous frame separating axis
-	
+	// Check previous frame separating axis
+	if (prev_data.m_actor != actor::Null)
+	{
+		float penetration{0.0f};
+		bool invalid_penetration{ false };
+		switch (prev_data.m_actor)
+		{
+		case sat::actor::A:
+			penetration = compute_face_penetration(mB, trAtoB, prev_data.m_face);
+			break;
+		case sat::actor::B:
+			penetration = compute_face_penetration(mA, trBtoA, prev_data.m_face);
+			break;
+		case sat::actor::Edge:
+			{
+				//const half_edge* edge1{ prev_data.m_edgeA };
+				//const glm::vec3 edge1_start = tr_point(trAtoB, mA->m_vertices[edge1->get_start()]);
+				//const glm::vec3 edge1_end = tr_point(trAtoB, mA->m_vertices[edge1->get_end()]);
+				//const glm::vec3 edge1_dir = edge1_end - edge1_start;
+				//const glm::vec3 edge1_normal = tr_vector(trAtoB, edge1->m_face->m_plane);
+				//const glm::vec3 edge1_twinnormal = tr_vector(trAtoB, edge1->m_twin->m_face->m_plane);
+				//
+				//const half_edge* edge2{ prev_data.m_edgeB };
+				//const glm::vec3 edge2_start = mB->m_vertices[edge2->get_start()];
+				//const glm::vec3 edge2_end = mB->m_vertices[edge2->get_end()];
+				//const glm::vec3 edge2_dir = edge2_end - edge2_start;
+				//
+				//const glm::vec3 edge2_normal = edge2->m_face->m_plane;
+				//const glm::vec3 edge2_twinnormal = edge2->m_twin->m_face->m_plane;
+				//
+				//if (test_gaussmap_intersect(edge1_normal, edge1_twinnormal, -edge2_normal, -edge2_twinnormal, -edge1_dir, -edge2_dir))
+				//{
+				//	const glm::vec3 centroidA = tr_point(trAtoB, glm::vec3{ 0.0f });
+				//	penetration = compute_edge_penetration(edge1_start, edge2_start, centroidA, edge1_dir, edge2_dir);
+				//}
+				//else
+					invalid_penetration = true;
+			}
+			break;
+		}
+
+
+		// Check if there are still separating
+		if (invalid_penetration);
+		else if (!was_colliding && penetration <= 0.0f)
+			return{};
+		else if (was_colliding && penetration > 0.0f)
+		{
+			next_data.m_penetration = penetration;
+			return generate_manifold(next_data);
+		}
+	}
+
+
 	// Check face normals of A as separating axis
 	penetration_data face_A_pen = test_faces(actor::A);
 	if (face_A_pen.m_penetration <= c_epsilon)
 	{
-		// TODO : Cach faceA
+		next_data = face_A_pen;
 		return {};
 	}
 
@@ -28,7 +83,7 @@ sat::result sat::test_collision()
 	penetration_data face_B_pen = test_faces(actor::B);
 	if (face_B_pen.m_penetration <= c_epsilon)
 	{
-		// TODO : Cach faceB
+		next_data = face_B_pen;
 		return {};
 	}
 
@@ -36,7 +91,7 @@ sat::result sat::test_collision()
 	penetration_data edge_pen = test_edges();
 	if (edge_pen.m_penetration <= 0.0f)
 	{
-		// TODO : Cach edge
+		next_data = edge_pen;
 		return {};
 	}
 
@@ -57,7 +112,8 @@ sat::result sat::test_collision()
 	if (min_penetration.m_penetration == FLT_MAX)
 		return {};
 
-	// TODO : Cach minimum penetration info
+	//  Cach minimum penetration
+	next_data = min_penetration;
 
 	// return manifold
 	return generate_manifold(min_penetration);
@@ -86,14 +142,14 @@ sat::penetration_data sat::test_faces(actor a)
 		if (penetration < 0.0f)
 		{
 			penetration_data face_pen{ a,penetration };
-			face_pen.m_pointers.m_face = f;
+			face_pen.m_face = f;
 			return face_pen;
 		}
 		
 		// Store minimum penetration
 		if (penetration < min_penetration.m_penetration)
 		{
-			min_penetration.m_pointers.m_face = f;
+			min_penetration.m_face = f;
 			min_penetration.m_penetration = penetration;
 		}
 	}
@@ -158,15 +214,15 @@ sat::penetration_data sat::test_edges()
 				if (penetration < 0.0f)
 				{
 					penetration_data edge_pen{ actor::Edge, penetration };
-					edge_pen.m_pointers.m_edges.A = edge1;
-					edge_pen.m_pointers.m_edges.B = edge2;
+					edge_pen.m_edgeA = edge1;	
+					edge_pen.m_edgeB = edge2;
 					return edge_pen;
 				}
 
 				if (penetration < min_penetration.m_penetration)
 				{
-					min_penetration.m_pointers.m_edges.A = edge1;
-					min_penetration.m_pointers.m_edges.B = edge2;
+					min_penetration.m_edgeA = edge1;
+					min_penetration.m_edgeB = edge2;
 					min_penetration.m_penetration = penetration;
 
 					edge_data[0] = edge1_start;
@@ -199,7 +255,7 @@ float sat::compute_edge_penetration(const glm::vec3 & edge1_start, const glm::ve
 	if (glm::length(axis) < c_epsilon)
 		return FLT_MAX;
 
-	// Chack axis is going from A to B
+	// Check axis is going from A to B
 	axis = glm::normalize(axis);
 	if (glm::dot(axis, centroidA - edge1_start) > 0.0f)
 		axis = -axis;
@@ -236,16 +292,11 @@ sat::result sat::generate_manifold(const penetration_data & data)
 		const glm::vec3 normalW = glm::normalize(tr_vector(trAtoWorld, normalA));
 		assert(glm::length2(normalW) > 0.0f);
 
-		// Create contact point
-		contact_point point;
-		point.local_A = edge1_closestlocal;
-		point.local_B = edge2_closest;
-		point.depth = data.m_penetration;
-
 		// Create contact manifold
 		simple_manifold manifold;
 		manifold.normal = normalW;
-		manifold.points.push_back(point);
+		manifold.local_A = { edge1_closestlocal };
+		manifold.local_B = { edge2_closest };
 		return {true, manifold };
 	}
 
@@ -260,7 +311,7 @@ sat::result sat::generate_manifold(const penetration_data & data)
 		const glm::mat4& trIncToRef{ actor_is_A ? trBtoA : trAtoB };
 		
 		// Compute axis in local A & local B
-		const face* faceRef = data.m_pointers.m_face;
+		const face* faceRef = data.m_face;
 		const glm::vec3 axisRef = faceRef->m_plane;
 		const glm::vec3 axisInc = tr_vector(trRefToInc, axisRef);
 
@@ -298,8 +349,6 @@ sat::result sat::generate_manifold(const penetration_data & data)
 
 		const glm::vec3 vtxRef = mRef->m_vertices[faceRef->m_indices[0]];
 
-		// Create contact point
-
 		// Create contact manifold
 		simple_manifold manifold;
 		manifold.normal = normalW;
@@ -313,15 +362,11 @@ sat::result sat::generate_manifold(const penetration_data & data)
 				const glm::vec3 pointInc = tr_point(trRefToInc, v);
 				const glm::vec3 pointRef = project_point_plane(v, axisRef, vtxRef);
 
-				contact_point point;
-				point.local_A = actor_is_A ? pointRef : pointInc;
-				point.local_B = actor_is_A ? pointInc : pointRef;
-				point.depth = penetration;
-
-				manifold.points.push_back(point);
+				manifold.local_A.push_back(actor_is_A ? pointRef : pointInc);
+				manifold.local_B.push_back(actor_is_A ? pointInc : pointRef);
 			}
 		}
-		if (manifold.points.size() == 0u)
+		if (manifold.local_A.size() == 0u)
 			return {};
 		return { true,manifold };
 	}
