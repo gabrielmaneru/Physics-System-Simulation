@@ -43,118 +43,33 @@ ray_info_detailed c_physics::ray_cast(const ray & world_ray)const
 	}
 	return info;
 }
-
+/**
+ * Perform carrow collision detection of the pair
+**/
 bool c_physics::collision_narrow(overlap_pair * pair) const
 {
+	// Initialize algorithm
 	sat algorithm{ pair };
+	// Run algorithm
 	sat::result r = algorithm.test_collision();
+	// If contact found
 	if (r.m_contact)
 	{
+		// Add new manifold data
 		pair->add_manifold(r.m_manifold);
+		// Set Collision state
 		pair->m_state = overlap_pair::state::Collision;
 		return true;
 	}
+	// If no penetration found
 	else
 	{
+		// Remove old manifold data
 		pair->manifold.points.clear();
+		// Set Collision state
 		pair->m_state = overlap_pair::state::NoCollision;
 		return false;
 	}
-
-
-	/*glm::vec3 init_dir = glm::normalize(b2.m_position - b1.m_position);
-
-	// Solve using GJK Algorithm
-	gjk gjk_solver(m1, m2,
-		b1.get_model(), b2.get_model(),
-		b1.get_basis(), b2.get_basis());
-
-	// Call GJK solver
-	gjk_solver.evaluate(init_dir);
-
-	// Draw Minkowski
-	if (m_draw_minkowski)
-		for (auto v1 : m1.m_vertices)
-			for (auto v2 : m2.m_vertices)
-				drawer.add_debugline_cube(v1 - tr_point(gjk_solver.m_mod_to_A, v2), 0.1f, black);
-
-	// Draw GJK Simplex
-	if (m_draw_gjk_simplex)
-		for (uint i = 0; i < gjk_solver.m_simplex.m_dim; ++i)
-			for (uint j = 0; j < gjk_solver.m_simplex.m_dim; ++j)
-				drawer.add_debugline(gjk_solver.m_simplex.m_points[i],
-					gjk_solver.m_simplex.m_points[j], white);
-
-	// If Solver success -> Origin is encloseed by simplex
-	if (gjk_solver.m_status == gjk::e_Success)
-	{
-
-
-		// Create EPA solver
-		epa epa_solver{ gjk_solver };
-
-		// Draw EPA Simplex
-		if (m_draw_epa_simplex)
-		{
-			drawer.add_debugline_list(epa_solver.m_polytope.get_lines(), blue);
-			drawer.add_debugtri_list(epa_solver.m_polytope.get_triangles(), blue);
-		}
-
-		// Call EPA solver
-		epa_solver.evaluate();
-
-
-		// Draw EPA Polytope
-		if (m_draw_epa_polytope)
-		{
-			glm::vec3 color = epa_solver.m_status == epa::e_Success ? green : red;
-			drawer.add_debugline_list(epa_solver.m_polytope.get_lines(), color);
-			drawer.add_debugtri_list(epa_solver.m_polytope.get_triangles(), color);
-			if(epa_solver.m_status == epa::e_Success)
-				drawer.add_debugtri_list({
-					epa_solver.m_result.m_points[0],
-					epa_solver.m_result.m_points[1],
-					epa_solver.m_result.m_points[2]
-					}, red);
-		}
-
-		// If Success
-		if (epa_solver.m_status == epa::e_Success)
-		{
-			// Fill contact info
-			contact_point result{&b1,&b2};
-
-			glm::vec3 p0A = tr_point(b1.get_model(), gjk_solver.supportA(epa_solver.m_result.m_dirs[0], m1));
-			glm::vec3 p1A = tr_point(b1.get_model(), gjk_solver.supportA(epa_solver.m_result.m_dirs[1], m1));
-			glm::vec3 p2A = tr_point(b1.get_model(), gjk_solver.supportA(epa_solver.m_result.m_dirs[2], m1));
-			glm::vec3 p0B = tr_point(b1.get_model(), gjk_solver.supportB(-epa_solver.m_result.m_dirs[0], m2));
-			glm::vec3 p1B = tr_point(b1.get_model(), gjk_solver.supportB(-epa_solver.m_result.m_dirs[1], m2));
-			glm::vec3 p2B = tr_point(b1.get_model(), gjk_solver.supportB(-epa_solver.m_result.m_dirs[2], m2));
-
-			result.m_pi_A = p0A * epa_solver.m_result.m_bary[0]
-				+ p1A * epa_solver.m_result.m_bary[1]
-				+ p2A * epa_solver.m_result.m_bary[2];
-			result.m_pi_B = p0B * epa_solver.m_result.m_bary[0]
-				+ p1B * epa_solver.m_result.m_bary[1]
-				+ p2B * epa_solver.m_result.m_bary[2];
-
-			result.m_depth = epa_solver.m_depth;
-			result.m_normal = epa_solver.m_normal;
-
-
-			if (m_draw_epa_results)
-			{
-				// Draw Contacts
-				drawer.add_debugline_cube(result.m_pi_A, 0.1f, red);
-				drawer.add_debugline_cube(result.m_pi_B, 0.2f, blue);
-
-				// Draw Normal line
-				drawer.add_debugline(result.m_pi_A, result.m_pi_A + result.m_normal * result.m_depth, yellow);
-			}
-			return result;
-		}
-	}
-	return {};*/
 }
 
 /**
@@ -162,35 +77,33 @@ bool c_physics::collision_narrow(overlap_pair * pair) const
 **/
 void c_physics::update()
 {
+	// Update physics delta time
 	physics_dt = static_cast<float>(window.m_dt);
-
+	// Current contact information
 	std::vector<overlap_pair*> contacts;
-
-	// Add Gravity
+	// Integrate velocities
 	for (auto& b : m_bodies)
 		b.integrate_velocities(physics_dt, m_gravity);
-
-	// Detect Collision
+	// Detect collision
 	for (uint i = 0; i < m_bodies.size() - 1; ++i)
-	{
 		for (uint j = i + 1; j < m_bodies.size(); ++j)
 		{
-			// Collide the two meshes
+			// Get mutual pair
 			overlap_pair* pair = &m_overlaps[{i, j}];
+			// If new pair, initialize it properly
 			if (pair->m_state == overlap_pair::state::New)
 				*pair = { &m_bodies[i],&m_bodies[j],&m_meshes[i],&m_meshes[j] };
-
+			// Perform narrow collision detection
 			if (collision_narrow(pair))
 			{
+				// Update pair information
 				pair->update();
 				contacts.push_back(pair);
 			}
 		}
-	}
-
-	// Solve Velocity Contraints
+	// Solve velocity Contraints
 	constraint_contact_solver{editor.m_solver_iterations, editor.m_baumgarte, editor.m_do_warm_start}.evaluate(contacts);
-
+	// Draw debug contact points
 	for (auto o : contacts)
 	for (auto p : o->manifold.points)
 	{
@@ -201,9 +114,7 @@ void c_physics::update()
 		drawer.add_debugline_cube(pB, 0.1f, blue);
 		drawer.add_debugline(pA, pA + o->manifold.normal * p.depth, green);
 	}
-	contacts.clear();
-
-	// Integrate bodiesr
+	// Integrate positions
 	for (auto& b : m_bodies)
 		b.integrate_positions(physics_dt);
 }
@@ -223,26 +134,41 @@ void c_physics::clean()
 **/
 body& c_physics::add_body(std::string file)
 {
+	// Find the mesh in loaded raw meshes
 	auto it = m_loaded_meshes.find(file);
+	// If not found, load it
 	if (it == m_loaded_meshes.end())
 	{
+		// Meshes path
 		const char * path = "../resources/meshes/";
+		//Load raw mesh
 		raw_mesh mesh{ path + file };
+		// Add it to the map
 		m_loaded_meshes[file] = mesh;
+		// Refresh iterator
 		it = m_loaded_meshes.find(file);
 	}
+	// Get raw mesh
 	raw_mesh& raw = it->second;
 
+	// Create physical mesh
 	physical_mesh m;
+	// Copy vertex array
 	m.m_vertices = { raw.m_vertices.begin(), raw.m_vertices.end() };
-	for (auto f : raw.m_faces)
+	// Insert triangles
+	for (auto f : raw.m_triangles)
 		m.add_face(f);
+	// Connect twins
 	m.create_twins();
+	// Merge coplanar faces
 	m.merge_coplanar();
-
+	// Move mesh into the final array
 	m_meshes.emplace_back(std::move(m));
+	// Create new body
 	m_bodies.push_back({});
+	// Initialize with mesh properties
 	m_bodies.back().set_mass(raw.m_mass).set_inertia(raw.m_inertia);
+	// Return newly created body
 	return m_bodies.back();
 }
 

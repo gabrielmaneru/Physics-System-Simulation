@@ -147,19 +147,19 @@ void overlap_pair::update()
 
 void overlap_pair::add_manifold(const sat::simple_manifold & other)
 {
-	assert(other.local_A.size() == other.local_B.size());
+	assert(other.m_local_A.size() == other.m_local_B.size());
 
 	// Check if both manifold refer to the same normal
 	// If have the same normal -> update points
-	if (glm::dot(manifold.normal, other.normal) > 1.0f - c_epsilon)
+	if (glm::dot(manifold.normal, other.m_normal) > 1.0f - c_epsilon)
 	{
 
 		std::vector<contact_point> points;
-		points.reserve(other.local_A.size());
-		for (int i = 0; i < other.local_A.size(); ++i)
+		points.reserve(other.m_local_A.size());
+		for (int i = 0; i < other.m_local_A.size(); ++i)
 		{
-			const glm::vec3& local_A = other.local_A[i];
-			const glm::vec3& local_B = other.local_B[i];
+			const glm::vec3& local_A = other.m_local_A[i];
+			const glm::vec3& local_B = other.m_local_B[i];
 
 			// Check wether the point is already inside
 			bool found{ false };
@@ -182,11 +182,11 @@ void overlap_pair::add_manifold(const sat::simple_manifold & other)
 	// If the normal is different -> overwrite manifold
 	else
 	{
-		manifold.normal = other.normal;
+		manifold.normal = other.m_normal;
 		manifold.points.clear();
-		manifold.points.reserve(other.local_A.size());
-		for (int i = 0; i < other.local_A.size(); ++i)
-			manifold.points.emplace_back(contact_point{ other.local_A[i],other.local_B[i] });
+		manifold.points.reserve(other.m_local_A.size());
+		for (int i = 0; i < other.m_local_A.size(); ++i)
+			manifold.points.emplace_back(contact_point{ other.m_local_A[i],other.m_local_B[i] });
 
 		manifold.lambda_U = 0.0f;
 		manifold.lambda_V = 0.0f;

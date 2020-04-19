@@ -71,7 +71,7 @@ raw_mesh::raw_mesh(const std::string & path)
 		{
 			std::vector<uint> f;
 			parse_indices(line, f);
-			m_faces.push_back(f);
+			m_triangles.push_back(f);
 		}
 	}
 	file.close();
@@ -111,9 +111,9 @@ glm::vec3 raw_mesh::compute_inertia()
 	float Iyz = 0.0f;
 	float Izx = 0.0f;
 
-	for (uint f =0; f < m_faces.size(); ++f)
+	for (uint f =0; f < m_triangles.size(); ++f)
 	{
-		const std::vector<uint>& face{ m_faces[f] };
+		const std::vector<uint>& face{ m_triangles[f] };
 		const glm::vec3& p0{ m_vertices[face[0]] };
 		for (uint t = 1; t < face.size() - 1; ++t)
 		{

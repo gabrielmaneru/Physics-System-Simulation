@@ -51,6 +51,5 @@ void engine::update()
 void engine::shutdown()
 {
 	editor.shutdown();
-	drawer.shutdown();
 	window.shutdown();
 }

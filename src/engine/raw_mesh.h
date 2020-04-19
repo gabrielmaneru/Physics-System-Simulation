@@ -24,5 +24,5 @@ struct raw_mesh
 	glm::mat3 m_inertia;
 	float m_mass;
 	std::vector<glm::vec3> m_vertices;
-	std::vector< std::vector<uint> > m_faces;
+	std::vector< std::vector<uint> > m_triangles;
 };

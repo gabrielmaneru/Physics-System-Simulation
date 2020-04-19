@@ -32,17 +32,16 @@ class c_drawer
 	shader_program* m_debug_shader{nullptr};
 
 public:
+	camera m_camera{};
+
 	bool initialize();
 	void render();
-	void shutdown();
 	void add_debugline(glm::vec3 p0, glm::vec3 p1, glm::vec3 color);
 	void add_debugline_parallelepiped(glm::vec3 p0, glm::vec3 v0, glm::vec3 v1, glm::vec3 v2, glm::vec3 color);
 	void add_debugline_cube(glm::vec3 p, float size, glm::vec3 color);
 	void add_debugline_list(const std::vector<glm::vec3>& pts, glm::vec3 color);
 	void add_debugtri_list(const std::vector<glm::vec3>& pts, const std::vector<glm::vec3>& norm, glm::vec3 color);
 	static c_drawer& get_instance();
-
-	camera m_camera{};
 };
 #define drawer c_drawer::get_instance()
 
