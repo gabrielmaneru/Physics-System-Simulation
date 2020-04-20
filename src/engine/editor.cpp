@@ -124,7 +124,7 @@ void c_editor::create_scene() const
 		physics.add_body("cube.obj").set_position({ 6.0f, 1.0f, 0.0f }).set_static(true);
 		physics.add_body("cube.obj").set_position({ 6.0f, 2.27f, 0.0f }).set_static(true).set_rotation(glm::normalize(glm::quat{ glm::vec3{0.5f*glm::half_pi<float>(), 0.5f*glm::half_pi<float>(), 0.35f*glm::half_pi<float>()} }));
 		physics.add_body("cube.obj").set_position({ 8.0f, 1.0f, 0.0f }).set_static(true);
-		physics.add_body("cube.obj").set_position({ 9.0f, 2.27f, 0.0f }).set_static(true).set_rotation(glm::normalize(glm::quat{ glm::vec3{0.5f*glm::half_pi<float>(), -0.5f*glm::half_pi<float>(), 0.0f} }));
+		physics.add_body("cube.obj").set_position({ 9.0f, 1.91f, 0.0f }).set_static(true).set_rotation(glm::normalize(glm::quat{ glm::vec3{0.5f*glm::half_pi<float>(), -0.5f*glm::half_pi<float>(), 0.0f} }));
 		break;
 	}
 }

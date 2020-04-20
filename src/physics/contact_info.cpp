@@ -106,12 +106,12 @@ void overlap_pair::update()
 	// Compute inverse mass of first friction constraint
 	const glm::vec3 rAxU = glm::cross(R_A, manifold.vec_U);
 	const glm::vec3 rBxU = glm::cross(R_B, manifold.vec_U);
-	const float M_u
+	const float M_U
 		= manifold.invM_A
 		+ manifold.invM_B
 		+ glm::dot(glm::cross(manifold.invI_A*rAxU, R_A), manifold.vec_U)
 		+ glm::dot(glm::cross(manifold.invI_B*rBxU, R_B), manifold.vec_U);
-	manifold.invM_U = M_u > 0.0f ? 1.f / M_u : 0.0f;
+	manifold.invM_U = M_U > 0.0f ? 1.f / M_U : 0.0f;
 
 
 	// Compute inverse mass of second friction constraint
